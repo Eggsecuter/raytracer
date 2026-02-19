@@ -1,37 +1,15 @@
+import { Circle } from "./objects/circle";
+import { Rectangle } from "./objects/rectangle";
+import { Scene } from "./render/scene";
 import { Color } from "./types/color";
+import { Vector2 } from "./types/vector2";
 
-class Main {
-	constructor (
-		private width: number,
-		private height: number
-	) {}
+const scene = new Scene(1000, 1000);
 
-	private context: CanvasRenderingContext2D;
+const blueCircle = new Circle(new Vector2(500, 500), 250, Color.BLUE);
+const redRectangle = new Rectangle(new Vector2(250, 400), 300, 450, Color.RED);
 
-	render() {
-		const canvas: HTMLCanvasElement = document.createElement('canvas');
-		canvas.width = this.width;
-		canvas.height = this.height;
-		document.body.appendChild(canvas);
+scene.addObject(blueCircle);
+scene.addObject(redRectangle);
 
-		this.context = canvas.getContext('2d', {
-			willReadFrequently: false
-		});
-
-		const backgroundColor = Color.GREEN;
-		const image = this.context.createImageData(this.width, this.height);
-
-		// a pixel has 4 values (rgba)
-		for (let pixelIndex = 0; pixelIndex < image.data.length; pixelIndex += 4) {
-			image.data[pixelIndex + 0] = backgroundColor.red;
-			image.data[pixelIndex + 1] = backgroundColor.green;
-			image.data[pixelIndex + 2] = backgroundColor.blue;
-			image.data[pixelIndex + 3] = backgroundColor.alpha;
-		}
-
-		this.context.putImageData(image, 0, 0);
-	}
-}
-
-const main = new Main(1080, 1080);
-main.render();
+scene.render();
