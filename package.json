@@ -1,0 +1,10 @@
+{
+	"scripts": {
+		"watch": "esbuild index.ts --bundle --outfile=.built/index.js --platform=browser --format=esm --watch",
+		"build": "esbuild index.ts --bundle --outfile=.built/index.js --platform=browser --format=esm"
+	},
+	"devDependencies": {
+		"esbuild": "^0.27.3",
+		"typescript": "^5.8.3"
+	}
+}
