@@ -12,4 +12,7 @@ const redRectangle = new Rectangle(Color.RED, new Vector2(250, 400), 300, 450);
 scene.addEntity(blueCircle);
 scene.addEntity(redRectangle);
 
+const start = Date.now();
 scene.render();
+
+console.debug(`Rendered in ${Date.now() - start}ms`);
