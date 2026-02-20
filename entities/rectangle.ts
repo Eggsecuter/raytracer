@@ -1,17 +1,15 @@
 import { Color } from "../types/color";
 import { Vector2 } from "../types/vector2";
-import { IObject } from "./object.interface";
+import { Entity } from "./entity";
 
-export class Rectangle implements IObject {
+export class Rectangle extends Entity {
 	constructor(
-		private origin: Vector2,
+		color: Color,
+		origin: Vector2,
 		private width: number,
-		private height: number,
-		private color: Color
-	) {}
-
-	getColor(): Color {
-		return this.color;
+		private height: number
+	) {
+		super(color, origin);
 	}
 
 	intersects(point: Vector2): boolean {

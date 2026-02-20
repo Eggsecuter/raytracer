@@ -1,16 +1,14 @@
 import { Color } from "../types/color";
 import { Vector2 } from "../types/vector2";
-import { IObject } from "./object.interface";
+import { Entity } from "./entity";
 
-export class Circle implements IObject {
+export class Circle extends Entity {
 	constructor (
-		private origin: Vector2,
-		private radius: number,
-		private color: Color
-	) {}
-
-	getColor(): Color {
-		return this.color;
+		color: Color,
+		origin: Vector2,
+		private radius: number
+	) {
+		super(color, origin);
 	}
 
 	intersects(point: Vector2): boolean {

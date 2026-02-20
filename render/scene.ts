@@ -1,4 +1,4 @@
-import { IObject } from "../objects/object.interface";
+import { Entity } from "../entities/entity";
 import { Color } from "../types/color";
 import { Vector2 } from "../types/vector2";
 
@@ -8,17 +8,7 @@ export class Scene {
 	constructor (
 		private width: number,
 		private height: number
-	) {}
-
-	private context: CanvasRenderingContext2D;
-	private objects: IObject[] = [];
-
-	addObject(object: IObject) {
-		// newer objects get rendered on top of older
-		this.objects.unshift(object);
-	}
-
-	render() {
+	) {
 		const canvas: HTMLCanvasElement = document.createElement('canvas');
 		canvas.width = this.width;
 		canvas.height = this.height;
@@ -27,7 +17,18 @@ export class Scene {
 		this.context = canvas.getContext('2d', {
 			willReadFrequently: false
 		});
+	}
 
+	private context: CanvasRenderingContext2D;
+	private entities: Entity[] = [];
+
+	addEntity(entity: Entity) {
+		// newer entities get rendered on top of older
+		this.entities.unshift(entity);
+	}
+
+	render() {
+		this.context.clearRect(0, 0, this.width, this.height);
 		const image = this.context.createImageData(this.width, this.height);
 
 		for (let y = 0; y < this.height; y++) {
@@ -48,10 +49,27 @@ export class Scene {
 		this.context.putImageData(image, 0, 0);
 	}
 
+	renderContinuously(onUpdate: (deltaTime: number) => void) {
+		let lastRender = 0;
+
+		function update(currentTime: number) {
+			const deltaTime = (currentTime - lastRender) / 1000;
+			lastRender = currentTime;
+
+			onUpdate(deltaTime);
+
+			this.render();
+
+			requestAnimationFrame(update.bind(this));
+		}
+
+		requestAnimationFrame(update.bind(this));
+	}
+
 	private getPixelColor(point: Vector2) {
-		for (const object of this.objects) {
-			if (object.intersects(point)) {
-				return object.getColor();
+		for (const entity of this.entities) {
+			if (entity.intersects(point)) {
+				return entity.color;
 			}
 		}
 

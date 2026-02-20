@@ -20,6 +20,16 @@ export class Vector2 {
 		return new Vector2(this.x * factor, this.y * factor);
 	}
 
+	normalize(): Vector2 {
+		const length = this.length;
+
+		if (length == 0) {
+			return new Vector2(0, 0);
+		}
+
+		return new Vector2(this.x / length, this.y / length);
+	}
+
 	clone(): Vector2 {
 		return new Vector2(this.x, this.y);
 	}
