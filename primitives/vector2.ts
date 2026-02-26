@@ -1,4 +1,6 @@
-export class Vector2 {
+import { Primitive } from "./primitive.interface";
+
+export class Vector2 implements Primitive {
 	get length() {
 		return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2))
 	}

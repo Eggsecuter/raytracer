@@ -1,6 +1,6 @@
 import { Entity } from "../entities/entity";
-import { Color } from "../types/color";
-import { Vector2 } from "../types/vector2";
+import { Color } from "../primitives/color";
+import { Vector2 } from "../primitives/vector2";
 
 export class Scene {
 	private readonly backgroundColor = Color.BLACK;
@@ -39,10 +39,10 @@ export class Scene {
 				const pixelDataLength = 4;
 				const pixelIndex = pixelDataLength * (this.width * y + x);
 
-				image.data[pixelIndex + 0] = color.red;
-				image.data[pixelIndex + 1] = color.green;
-				image.data[pixelIndex + 2] = color.blue;
-				image.data[pixelIndex + 3] = color.alpha;
+				image.data[pixelIndex + 0] = 255 * color.red;
+				image.data[pixelIndex + 1] = 255 * color.green;
+				image.data[pixelIndex + 2] = 255 * color.blue;
+				image.data[pixelIndex + 3] = 255;
 			}
 		}
 
@@ -67,12 +67,14 @@ export class Scene {
 	}
 
 	private getPixelColor(point: Vector2) {
+		let additiveColor = this.backgroundColor;
+
 		for (const entity of this.entities) {
 			if (entity.intersects(point)) {
-				return entity.color;
+				additiveColor = additiveColor.add(entity.color);
 			}
 		}
 
-		return this.backgroundColor;
+		return additiveColor;
 	}
 }

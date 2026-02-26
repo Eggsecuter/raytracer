@@ -1,16 +1,17 @@
 import { Circle } from "./entities/circle";
-import { Rectangle } from "./entities/rectangle";
 import { Scene } from "./render/scene";
-import { Color } from "./types/color";
-import { Vector2 } from "./types/vector2";
+import { Color } from "./primitives/color";
+import { Vector2 } from "./primitives/vector2";
 
 const scene = new Scene(1000, 1000);
 
-const blueCircle = new Circle(Color.BLUE, new Vector2(500, 500), 250);
-const redRectangle = new Rectangle(Color.RED, new Vector2(250, 400), 300, 450);
+const redCircle = new Circle(Color.RED, new Vector2(350, 650), 250);
+const blueCircle = new Circle(Color.BLUE, new Vector2(500, 350), 250);
+const greenCircle = new Circle(Color.GREEN, new Vector2(650, 650), 250);
 
+scene.addEntity(redCircle);
 scene.addEntity(blueCircle);
-scene.addEntity(redRectangle);
+scene.addEntity(greenCircle);
 
 const start = Date.now();
 scene.render();

@@ -1,5 +1,5 @@
-import { Color } from "../types/color";
-import { Vector2 } from "../types/vector2";
+import { Color } from "../primitives/color";
+import { Vector2 } from "../primitives/vector2";
 import { Entity } from "./entity";
 
 export class Rectangle extends Entity {
