@@ -1,14 +1,22 @@
-import { Primitive } from "./primitive.interface";
+import { Vector } from "./vector";
 
-export class Vector2 implements Primitive {
+export class Vector2 extends Vector {
+	static readonly ZERO = new Vector2(0, 0);
+	static readonly RIGHT = new Vector2(1, 0);
+	static readonly UP = new Vector2(0, 1);
+	static readonly LEFT = new Vector2(-1, 0);
+	static readonly DOWN = new Vector2(0, -1);
+
 	get length() {
-		return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2))
+		return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
 	}
 
 	constructor (
 		public x: number,
 		public y: number
-	) {}
+	) {
+		super();
+	}
 
 	add(other: Vector2): Vector2 {
 		return new Vector2(this.x + other.x, this.y + other.y);
@@ -18,8 +26,16 @@ export class Vector2 implements Primitive {
 		return new Vector2(this.x - other.x, this.y - other.y);
 	}
 
-	multiplyScalar(factor: number): Vector2 {
+	multiply(factor: number): Vector2 {
 		return new Vector2(this.x * factor, this.y * factor);
+	}
+
+	scalarProduct(other: Vector2): number {
+		return this.x * other.x + this.y * other.y;
+	}
+
+	invert(): Vector2 {
+		return new Vector2(-this.x, -this.y);
 	}
 
 	normalize(): Vector2 {
@@ -37,6 +53,6 @@ export class Vector2 implements Primitive {
 	}
 
 	toString(): string {
-		return `[${this.x}, ${this.y}]`;
+		return `Vector2[${this.x}, ${this.y}]`;
 	}
 }

@@ -1,15 +1,17 @@
 import { Color } from "../primitives/color";
-import { Vector2 } from "../primitives/vector2";
+import { Ray } from "../primitives/ray";
+import { RayHit } from "../primitives/ray-hit";
+import { Vector } from "../primitives/vector";
 
-export abstract class Entity {
+export abstract class Entity<TVector extends Vector> {
 	constructor (
 		public color: Color,
-		protected origin: Vector2
+		public origin: TVector
 	) {}
 
-	abstract intersects(point: Vector2): boolean;
+	abstract intersect(ray: Ray<TVector>): RayHit<TVector> | null;
 
-	move(delta: Vector2) {
-		this.origin = this.origin.add(delta);
+	move(delta: TVector) {
+		this.origin = this.origin.add(delta) as TVector;
 	}
 }

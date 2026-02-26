@@ -44,7 +44,7 @@ export class Color implements Primitive {
 	}
 
 	toString(): string {
-		return `[${this.red}, ${this.green}, ${this.blue}]`;
+		return `Color[${this.red}, ${this.green}, ${this.blue}]`;
 	}
 
 	private clamp(amount: number): number {

@@ -1,8 +1,10 @@
 import { Color } from "../primitives/color";
+import { Ray } from "../primitives/ray";
+import { RayHit } from "../primitives/ray-hit";
 import { Vector2 } from "../primitives/vector2";
 import { Entity } from "./entity";
 
-export class Rectangle extends Entity {
+export class Rectangle extends Entity<Vector2> {
 	constructor(
 		color: Color,
 		origin: Vector2,
@@ -12,12 +14,28 @@ export class Rectangle extends Entity {
 		super(color, origin);
 	}
 
-	intersects(point: Vector2): boolean {
-		return (
-			point.x >= this.origin.x &&
-			point.x <= this.origin.x + this.width &&
-			point.y >= this.origin.y &&
-			point.y <= this.origin.y + this.height
-		);
+	intersect(ray: Ray<Vector2>): RayHit<Vector2> | null {
+		const halfWidth = this.width / 2;
+		const halfHeight = this.height / 2;
+
+		const left = this.origin.x - halfWidth;
+		const right = this.origin.x + halfWidth;
+		const top = this.origin.y - halfHeight;
+		const bottom = this.origin.y + halfHeight;
+
+		if (
+			ray.origin.x >= left &&
+			ray.origin.x <= right &&
+			ray.origin.y >= top &&
+			ray.origin.y <= bottom
+		) {
+			return new RayHit(
+				0,
+				ray.origin.clone(),
+				ray.direction.invert()
+			);
+		}
+
+		return null;
 	}
 }

@@ -1,8 +1,10 @@
 import { Color } from "../primitives/color";
+import { Ray } from "../primitives/ray";
+import { RayHit } from "../primitives/ray-hit";
 import { Vector2 } from "../primitives/vector2";
 import { Entity } from "./entity";
 
-export class Circle extends Entity {
+export class Circle extends Entity<Vector2> {
 	constructor (
 		color: Color,
 		origin: Vector2,
@@ -11,9 +13,15 @@ export class Circle extends Entity {
 		super(color, origin);
 	}
 
-	intersects(point: Vector2): boolean {
-		const distance = point.subtract(this.origin).length;
+	intersect(ray: Ray<Vector2>): RayHit<Vector2> | null {
+		const distance = ray.origin.subtract(this.origin).length;
 
-		return distance <= this.radius;
+		if (distance <= this.radius) {
+			return new RayHit(
+				0,
+				ray.origin.clone(),
+				ray.direction.invert()
+			);
+		}
 	}
 }
