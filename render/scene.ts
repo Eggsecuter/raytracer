@@ -77,7 +77,7 @@ export class Scene {
 
 		for (const entity of this.entities) {
 			const intersection = entity.intersect(
-				entity.origin instanceof Vector2 ? ray2d : ray3d
+				entity.transform.position instanceof Vector2 ? ray2d : ray3d
 			);
 
 			// newer entities get rendered on top of older

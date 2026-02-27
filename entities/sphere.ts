@@ -1,21 +1,22 @@
 import { Color } from "../primitives/color";
 import { Ray } from "../primitives/ray";
 import { RayHit } from "../primitives/ray-hit";
+import { Transform } from "../primitives/transform";
 import { Vector3 } from "../primitives/vector3";
 import { Entity } from "./entity";
 
 export class Sphere extends Entity<Vector3> {
 	constructor(
 		color: Color,
-		origin: Vector3,
+		transform: Transform<Vector3>,
 		public radius: number
 	) {
-		super(color, origin);
+		super(color, transform);
 	}
 
 	intersect(ray: Ray<Vector3>): RayHit<Vector3> | null {
 		// vector from sphere center to ray origin
-		const originToCenter = ray.origin.subtract(this.origin);
+		const originToCenter = ray.origin.subtract(this.transform.position);
 
 		// quadratic coefficients
 		const directionLengthSquared = ray.direction.scalarProduct(ray.direction);
@@ -56,7 +57,7 @@ export class Sphere extends Entity<Vector3> {
 		);
 
 		const surfaceNormal =
-			hitPoint.subtract(this.origin).normalize();
+			hitPoint.subtract(this.transform.position).normalize();
 
 		return new RayHit(hitDistance, hitPoint, surfaceNormal);
 	}
