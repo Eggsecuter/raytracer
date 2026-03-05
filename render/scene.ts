@@ -1,9 +1,12 @@
 import { Entity } from "../entities/entity";
+import { Light } from "../light/light.interface";
 import { Color } from "../primitives/color";
+import { RayHit } from "../primitives/ray-hit";
 import { Camera } from "./camera";
 
 export class Scene {
 	private readonly backgroundColor = Color.BLACK;
+	private readonly ambientLight = Color.fromGrayscale(0.03);
 
 	constructor (
 		private camera: Camera,
@@ -20,12 +23,10 @@ export class Scene {
 		});
 	}
 
-	private context: CanvasRenderingContext2D;
-	private entities: Entity[] = [];
+	entities: Entity[] = [];
+	globalLights: Light[] = [];
 
-	addEntity(...entity: Entity[]) {
-		this.entities.push(...entity);
-	}
+	private context: CanvasRenderingContext2D;
 
 	render() {
 		this.context.clearRect(0, 0, this.width, this.height);
@@ -69,19 +70,29 @@ export class Scene {
 	private getPixelColor(x: number, y: number) {
 		const ray = this.camera.getRay(x, y, this.width, this.height);
 
-		let smallestDistance: number = null;
-		let currentColor = this.backgroundColor;
+		let closestEntity: Entity = null;
+		let closestIntersection: RayHit = null;
 
 		for (const entity of this.entities) {
 			const intersection = entity.intersect(ray);
 
 			// newer entities get rendered on top of older
-			if (intersection && (smallestDistance == null || intersection.distance <= smallestDistance)) {
-				smallestDistance = intersection.distance;
-				currentColor = entity.color;
+			if (intersection && (closestIntersection == null || intersection.distance <= closestIntersection.distance)) {
+				closestEntity = entity
+				closestIntersection = intersection;
 			}
 		}
 
-		return currentColor;
+		if (!closestEntity || !closestIntersection) {
+			return this.backgroundColor;
+		}
+
+		let diffuseColor = Color.BLACK;
+
+		for (const globalLight of this.globalLights) {
+			diffuseColor = diffuseColor.add(globalLight.calculateColor(closestIntersection));
+		}
+
+		return closestEntity.color.multiply(diffuseColor).add(this.ambientLight);
 	}
 }

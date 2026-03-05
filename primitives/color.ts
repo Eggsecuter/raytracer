@@ -23,6 +23,14 @@ export class Color implements Primitive {
 		blue = this.clamp(blue);
 	}
 
+	/**
+	 * Get gray color from intensity
+	 * @param intensity Intensity range 0-1
+	 */
+	static fromGrayscale(intensity: number) {
+		return new Color(intensity, intensity, intensity);
+	}
+
 	add(other: Color): Color {
 		return new Color(
 			this.red + other.red,

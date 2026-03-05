@@ -6,7 +6,7 @@ import { Vector3 } from "../primitives/vector3";
 export class Camera {
 	constructor (
 		public transform: Transform = new Transform(),
-		public fov: number = Angle.toRadiant(80),
+		public fov: number = Angle.toRadiant(60),
 	) {}
 
 	getRay(x: number, y: number, width: number, height: number): Ray {

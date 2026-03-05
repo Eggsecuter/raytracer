@@ -4,8 +4,7 @@ import { Sphere } from "./entities/sphere";
 import { Vector3 } from "./primitives/vector3";
 import { Transform } from "./primitives/transform";
 import { Camera } from "./render/camera";
-import { Angle } from "./utilities/angle";
-import { Quaternion } from "./primitives/quaternion";
+import { GlobalLight } from "./light/global-light";
 
 const camera = new Camera();
 const scene = new Scene(camera, 1000, 1000);
@@ -18,76 +17,62 @@ const head = new Sphere(
 
 const rightEye = new Sphere(
 	Color.WHITE,
-	new Transform(new Vector3(0.3, 0.3, 3.0)),
+	new Transform(new Vector3(0.3, 0.3, 4.1)),
 	0.2
 );
 
 const rightPupil = new Sphere(
 	Color.GREEN,
-	new Transform(new Vector3(0.25, 0.25, 2.5)),
+	new Transform(new Vector3(0.3, 0.25, 3.9)),
 	0.05
 );
 
 const leftEye = new Sphere(
 	Color.WHITE,
-	new Transform(new Vector3(-0.3, 0.3, 3.0)),
+	new Transform(new Vector3(-0.3, 0.3, 4.1)),
 	0.2
 );
 
 const leftPupil = new Sphere(
 	Color.GREEN,
-	new Transform(new Vector3(-0.25, 0.25, 2.5)),
+	new Transform(new Vector3(-0.3, 0.25, 3.9)),
 	0.05
 );
 
 const nose = new Sphere(
 	Color.RED,
-	new Transform(new Vector3(0, -0.25, 3)),
+	new Transform(new Vector3(0, -0.25, 4)),
 	0.2
 );
 
-scene.addEntity(
+const other = new Sphere(
+	Color.GREEN,
+	new Transform(new Vector3(-2, 3, 7)),
+	0.5
+)
+
+scene.entities.push(
 	head,
 	rightEye,
 	rightPupil,
 	leftEye,
 	leftPupil,
-	nose
+	nose,
+	other
+);
+
+scene.globalLights.push(
+	new GlobalLight(
+		new Color(0.5, 0.5, 0.4),
+		new Vector3(-1, 1, -1.5)
+	),
+	new GlobalLight(
+		Color.BLUE,
+		new Vector3(1, 1, -1.5)
+	)
 );
 
 const start = Date.now();
 scene.render();
 
 console.debug(`Rendered in ${Date.now() - start}ms`);
-
-let yaw = 0;
-let pitch = 0;
-
-document.onkeydown = (event: KeyboardEvent) => {
-	const turnAmount = Angle.toRadiant(5);
-
-	switch (event.key) {
-		case 'ArrowUp':
-			pitch += turnAmount;
-			break;
-
-		case 'ArrowDown':
-			pitch -= turnAmount;
-			break;
-
-		case 'ArrowRight':
-			yaw += turnAmount;
-			break;
-
-		case 'ArrowLeft':
-			yaw -= turnAmount;
-			break;
-	}
-
-	const qYaw = Quaternion.fromEuler(new Vector3(0, yaw, 0));
-	const qPitch = Quaternion.fromEuler(new Vector3(pitch, 0, 0));
-
-	camera.transform.rotation = qYaw.multiply(qPitch).normalize();
-
-	scene.render();
-}
