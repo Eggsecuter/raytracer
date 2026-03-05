@@ -64,11 +64,7 @@ scene.entities.push(
 scene.globalLights.push(
 	new GlobalLight(
 		new Color(0.5, 0.5, 0.4),
-		new Vector3(-1, 1, -1.5)
-	),
-	new GlobalLight(
-		Color.BLUE,
-		new Vector3(1, 1, -1.5)
+		new Vector3(-5, 2, 0)
 	)
 );
 

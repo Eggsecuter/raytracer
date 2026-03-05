@@ -6,7 +6,7 @@ import { Camera } from "./camera";
 
 export class Scene {
 	private readonly backgroundColor = Color.BLACK;
-	private readonly ambientLight = Color.fromGrayscale(0.03);
+	private readonly ambientLight = Color.fromGrayscale(0.05);
 
 	constructor (
 		private camera: Camera,
