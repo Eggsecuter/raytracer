@@ -1,6 +1,6 @@
-import { Vector } from "./vector";
+import { Primitive } from "./primitive.interface";
 
-export class Vector3 extends Vector {
+export class Vector3 implements Primitive {
 	static readonly ZERO = new Vector3(0, 0, 0);
 	static readonly RIGHT = new Vector3(1, 0, 0);
 	static readonly UP = new Vector3(0, 1, 0);
@@ -10,16 +10,14 @@ export class Vector3 extends Vector {
 	static readonly BACKWARD = new Vector3(0, 0, -1);
 
 	get length() {
-		return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2) + Math.pow(this.z, 2));
+		return Math.hypot(this.x, this.y, this.z);
 	}
 
 	constructor (
 		public x: number,
 		public y: number,
 		public z: number
-	) {
-		super();
-	}
+	) {}
 
 	add(other: Vector3): Vector3 {
 		return new Vector3(this.x + other.x, this.y + other.y, this.z + other.z);
@@ -49,6 +47,15 @@ export class Vector3 extends Vector {
 		}
 
 		return new Vector3(this.x / length, this.y / length, this.z / length);
+	}
+
+	/**
+	 * Calculates the angle between two vectors
+	 * @param other Other vector
+	 * @returns Angle in radiants
+	 */
+	angle(other: Vector3): number {
+		return Math.acos(this.scalarProduct(other) / (this.length * other.length));
 	}
 
 	clone(): Vector3 {

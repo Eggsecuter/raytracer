@@ -1,14 +1,14 @@
 import { Primitive } from "./primitive.interface";
-import { Vector } from "./vector";
+import { Vector3 } from "./vector3";
 
-export class Ray<TVector extends Vector> implements Primitive {
+export class Ray implements Primitive {
 	constructor (
-		public origin: TVector,
-		public direction: TVector
+		public origin: Vector3,
+		public direction: Vector3
 	) {}
 
-	clone(): Ray<TVector> {
-		return new Ray(this.origin.clone(), this.direction.clone()) as Ray<TVector>;
+	clone(): Ray {
+		return new Ray(this.origin.clone(), this.direction.clone());
 	}
 
 	toString(): string {

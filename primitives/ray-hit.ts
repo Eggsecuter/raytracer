@@ -1,18 +1,18 @@
 import { Primitive } from "./primitive.interface";
-import { Vector } from "./vector";
+import { Vector3 } from "./vector3";
 
-export class RayHit<TVector extends Vector> implements Primitive {
+export class RayHit implements Primitive {
 	constructor (
 		public distance: number,
-		public point: TVector,
-		public normal: TVector
+		public point: Vector3,
+		public normal: Vector3
 	) {}
 
-	clone(): RayHit<TVector> {
-		return new RayHit(this.distance, this.point.clone(), this.normal.clone()) as RayHit<TVector>;
+	clone(): RayHit {
+		return new RayHit(this.distance, this.point.clone(), this.normal.clone());
 	}
 
 	toString(): string {
-		throw new Error("Method not implemented.");
+		return `RayHit[${this.distance}, ${this.point.toString()}, ${this.normal.toString()}]`;
 	}
 }

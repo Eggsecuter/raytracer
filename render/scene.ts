@@ -1,14 +1,12 @@
 import { Entity } from "../entities/entity";
 import { Color } from "../primitives/color";
-import { Ray } from "../primitives/ray";
-import { Vector } from "../primitives/vector";
-import { Vector2 } from "../primitives/vector2";
-import { Vector3 } from "../primitives/vector3";
+import { Camera } from "./camera";
 
 export class Scene {
 	private readonly backgroundColor = Color.BLACK;
 
 	constructor (
+		private camera: Camera,
 		private width: number,
 		private height: number
 	) {
@@ -23,9 +21,9 @@ export class Scene {
 	}
 
 	private context: CanvasRenderingContext2D;
-	private entities: Entity<Vector>[] = [];
+	private entities: Entity[] = [];
 
-	addEntity(...entity: Entity<Vector>[]) {
+	addEntity(...entity: Entity[]) {
 		this.entities.push(...entity);
 	}
 
@@ -35,7 +33,7 @@ export class Scene {
 
 		for (let y = 0; y < this.height; y++) {
 			for (let x = 0; x < this.width; x++) {
-				const color = this.getPixelColor(new Vector3(x, y, 0));
+				const color = this.getPixelColor(x, y);
 
 				// a pixel has 4 values (rgba)
 				const pixelDataLength = 4;
@@ -68,17 +66,14 @@ export class Scene {
 		requestAnimationFrame(update.bind(this));
 	}
 
-	private getPixelColor(point: Vector3) {
-		const ray3d = new Ray(point, Vector3.FORWARD);
-		const ray2d = new Ray(new Vector2(point.x, point.y), Vector2.ZERO);
+	private getPixelColor(x: number, y: number) {
+		const ray = this.camera.getRay(x, y, this.width, this.height);
 
 		let smallestDistance: number = null;
 		let currentColor = this.backgroundColor;
 
 		for (const entity of this.entities) {
-			const intersection = entity.intersect(
-				entity.transform.position instanceof Vector2 ? ray2d : ray3d
-			);
+			const intersection = entity.intersect(ray);
 
 			// newer entities get rendered on top of older
 			if (intersection && (smallestDistance == null || intersection.distance <= smallestDistance)) {

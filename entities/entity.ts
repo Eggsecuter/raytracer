@@ -2,13 +2,12 @@ import { Color } from "../primitives/color";
 import { Ray } from "../primitives/ray";
 import { RayHit } from "../primitives/ray-hit";
 import { Transform } from "../primitives/transform";
-import { Vector } from "../primitives/vector";
 
-export abstract class Entity<TVector extends Vector> {
+export abstract class Entity {
 	constructor (
 		public color: Color,
-		public transform: Transform<TVector>
+		public transform: Transform
 	) {}
 
-	abstract intersect(ray: Ray<TVector>): RayHit<TVector> | null;
+	abstract intersect(ray: Ray): RayHit | null;
 }

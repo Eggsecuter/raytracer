@@ -1,25 +1,27 @@
 import { Primitive } from "./primitive.interface";
-import { Vector } from "./vector";
+import { Quaternion } from "./quaternion";
+import { Vector3 } from "./vector3";
 
-export class Transform<TVector extends Vector> implements Primitive {
+export class Transform implements Primitive {
 	constructor (
-		public position: TVector,
-		public rotation: TVector
+		public position: Vector3 = Vector3.ZERO,
+		public rotation: Quaternion = Quaternion.IDENTITY
 	) {}
 
-	move(delta: TVector) {
-		this.position = this.position.add(delta) as TVector;
+	move(delta: Vector3) {
+		this.position = this.position.add(delta);
 	}
 
-	rotate(delta: TVector) {
-		this.rotation = this.rotation.add(delta) as TVector;
+	rotate(delta: Vector3 | Quaternion) {
+		if (delta instanceof Vector3) {
+			delta = Quaternion.fromEuler(delta);
+		}
+
+		this.rotation = this.rotation.multiply(delta).normalize();
 	}
 
-	clone(): Transform<TVector> {
-		return new Transform(
-			this.position.clone(),
-			this.rotation.clone()
-		) as Transform<TVector>;
+	clone(): Transform {
+		return new Transform(this.position.clone(), this.rotation.clone());
 	}
 
 	toString(): string {
