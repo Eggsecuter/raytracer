@@ -1,8 +1,7 @@
-use crate::primitives::{Color, Ray, RayHit, Transform};
+use crate::primitives::{Color, Ray, RayHit};
 
 pub trait Entity: Sync + Send {
 	fn color(&self) -> Color;
-	fn transform(&self) -> &Transform;
 
 	fn intersect(&self, ray: &Ray) -> Option<RayHit>;
 }

@@ -15,6 +15,10 @@ impl Color {
 	pub const RED: Color = Color { red: 1.0, green: 0.0, blue: 0.0 };
 	pub const GREEN: Color = Color { red: 0.0, green: 1.0, blue: 0.0 };
 	pub const BLUE: Color = Color { red: 0.0, green: 0.0, blue: 1.0 };
+
+	pub const YELLOW: Color = Color { red: 1.0, green: 1.0, blue: 0.0 };
+	pub const MAGENTA: Color = Color { red: 1.0, green: 0.0, blue: 1.0 };
+	pub const CYAN: Color = Color { red: 0.0, green: 1.0, blue: 1.0 };
 }
 
 impl Color {

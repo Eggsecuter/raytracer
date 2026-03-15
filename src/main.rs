@@ -19,6 +19,8 @@ use lights::omni_light::OmniLight;
 
 use minifb::{Key, Window, WindowOptions};
 
+use crate::entities::Triangle;
+
 const WIDTH: usize = 1800;
 const HEIGHT: usize = 1000;
 
@@ -78,6 +80,20 @@ fn main() {
 		0.5,
 	);
 
+	let triangle = Triangle::new(
+		Color::MAGENTA,
+		Vector3::new(3.0, -1.0, 2.0),
+		Vector3::new(-3.0, -1.0, 2.0),
+		Vector3::new(-3.0, -1.0, 7.0)
+	);
+
+	let triangle2 = Triangle::new(
+		Color::CYAN,
+		Vector3::new(3.0, -1.0, 2.0),
+		Vector3::new(-3.0, -1.0, 7.0),
+		Vector3::new(3.0, -1.0, 7.0),
+	);
+
 	scene.entities.push(Box::new(head));
 	scene.entities.push(Box::new(right_eye));
 	scene.entities.push(Box::new(right_pupil));
@@ -85,6 +101,8 @@ fn main() {
 	scene.entities.push(Box::new(left_pupil));
 	scene.entities.push(Box::new(nose));
 	scene.entities.push(Box::new(other));
+	scene.entities.push(Box::new(triangle));
+	scene.entities.push(Box::new(triangle2));
 
 	scene.global_lights.push(Box::new(OmniLight::new(
 		Color::new(0.5, 0.5, 0.4),

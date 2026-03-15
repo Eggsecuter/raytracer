@@ -22,10 +22,6 @@ impl Entity for Sphere {
 		self.color
 	}
 
-	fn transform(&self) -> &Transform {
-		&self.transform
-	}
-
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
 		// Vector from sphere center to ray origin
 		let origin_to_center = ray.origin - self.transform.position;
