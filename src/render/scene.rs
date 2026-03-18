@@ -1,3 +1,4 @@
+use crate::primitives::Ray;
 use crate::render::Camera;
 use crate::entities::entity::Entity;
 use crate::lights::light::Light;
@@ -51,6 +52,7 @@ impl Scene {
 	fn get_pixel_color(&self, x: usize, y: usize) -> Color {
 		let ray = self.camera.get_ray(x, y, self.width, self.height);
 
+		// find the closest intersection
 		let mut closest_entity: Option<&Box<dyn Entity>> = None;
 		let mut closest_intersection: Option<RayHit> = None;
 
@@ -65,22 +67,42 @@ impl Scene {
 			}
 		}
 
-		if closest_entity.is_none() {
-			return self.background_color;
-		}
+		// unwrap intersection or return background
+		let intersection = match closest_intersection {
+			Some(hit) => hit,
+			None => return self.background_color,
+		};
 
-		let intersection = closest_intersection.unwrap();
-
+		// calculate diffuse color
 		let mut diffuse_color = Color::BLACK;
+		let mut in_light_count = 0;
 
 		for light in &self.global_lights {
-			diffuse_color += light.calculate_color(&intersection);
+			let to_light = light.position() - intersection.point;
+			let distance_to_light = to_light.length();
+			let shadow_ray = Ray::new(intersection.point + intersection.normal * 1e-4, to_light.normalize());
+
+			// check if point is in shadow
+			let mut in_light = true;
+
+			for other_entity in &self.entities {
+				if let Some(hit) = other_entity.intersect(&shadow_ray) {
+					if hit.distance < distance_to_light {
+						in_light = false;
+						break;
+					}
+				}
+			}
+
+			if in_light {
+				diffuse_color += light.calculate_color(&intersection);
+				in_light_count += 1;
+			}
 		}
 
-		closest_entity
-			.unwrap()
-			.color()
-			* diffuse_color
-			+ self.ambient_light
+		// final shadow factor
+		diffuse_color *= in_light_count as f64 / self.global_lights.iter().count().max(1) as f64;
+
+		closest_entity.unwrap().color() * diffuse_color + self.ambient_light
 	}
 }

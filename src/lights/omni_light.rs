@@ -16,6 +16,10 @@ impl OmniLight {
 }
 
 impl Light for OmniLight {
+	fn position(&self) -> Vector3 {
+		self.position
+	}
+
 	fn calculate_color(&self, ray_hit: &RayHit) -> Color {
 		let intensity = (self.position - ray_hit.point).dot(&ray_hit.normal);
 

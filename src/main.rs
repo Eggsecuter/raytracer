@@ -94,6 +94,20 @@ fn main() {
 		Vector3::new(3.0, -1.0, 7.0),
 	);
 
+	let triangle3 = Triangle::new(
+		Color::MAGENTA,
+		Vector3::new(3.0, -1.0, 2.0),
+		Vector3::new(3.0, -1.0, 7.0),
+		Vector3::new(3.0, 3.0, 2.0)
+	);
+
+	let triangle4 = Triangle::new(
+		Color::CYAN,
+		Vector3::new(3.0, 3.0, 2.0),
+		Vector3::new(3.0, -1.0, 7.0),
+		Vector3::new(3.0, 3.0, 7.0)
+	);
+
 	scene.entities.push(Box::new(head));
 	scene.entities.push(Box::new(right_eye));
 	scene.entities.push(Box::new(right_pupil));
@@ -103,11 +117,21 @@ fn main() {
 	scene.entities.push(Box::new(other));
 	scene.entities.push(Box::new(triangle));
 	scene.entities.push(Box::new(triangle2));
+	scene.entities.push(Box::new(triangle3));
+	scene.entities.push(Box::new(triangle4));
 
-	scene.global_lights.push(Box::new(OmniLight::new(
+	let first_light = OmniLight::new(
 		Color::new(0.5, 0.5, 0.4),
-		Vector3::new(-5.0, 2.0, 0.0),
-	)));
+		Vector3::new(-5.0, 2.0, 5.0),
+	);
+
+	let second_light = OmniLight::new(
+		Color::new(0.5, 0.5, 0.4),
+		Vector3::new(-5.0, 2.0, 1.0),
+	);
+
+	scene.global_lights.push(Box::new(first_light));
+	scene.global_lights.push(Box::new(second_light));
 
 	let start = Instant::now();
 
