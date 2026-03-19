@@ -6,34 +6,33 @@ use crate::utilities::angle::Angle;
 #[derive(Debug, Clone)]
 pub struct Camera {
 	pub transform: Transform,
-	pub fov: f64,
+	pub half_height: f32,
+	pub half_width: f32
 }
 
 impl Camera {
-	pub fn new(transform: Option<Transform>, fov: Option<f64>) -> Self {
+	pub fn new(transform: Option<Transform>, y_fov: Option<f32>, aspect_ratio: Option<f32>) -> Self {
+		let y_fov = y_fov.unwrap_or(Angle::to_radian(60.0));
+		let half_height = (y_fov / 2.0).tan();
+
 		Self {
 			transform: transform.unwrap_or(Transform::new(None, None)),
-			fov: fov.unwrap_or(Angle::to_radian(60.0)),
+			half_height,
+			half_width: half_height * aspect_ratio.unwrap_or(1.5)
 		}
 	}
 
-	pub fn get_ray(&self, x: usize, y: usize, width: usize, height: usize) -> Ray {
-		let aspect = width as f64 / height as f64;
+	pub fn get_ray(&self, x: f32, y: f32, width: f32, height: f32) -> Ray {
+		let pixel_center_offset = 0.5;
 
-		let px =
-			(2.0 * (x as f64 + 0.5) / width as f64 - 1.0) * (self.fov / 2.0).tan() * aspect;
+		// calculate normalized coordinates
+		let u = 2.0 * (x + pixel_center_offset) / width - 1.0;
+		let v = 1.0 - 2.0 * (y + pixel_center_offset) / height;
 
-		let py =
-			(1.0 - 2.0 * (y as f64 + 0.5) / height as f64) * (self.fov / 2.0).tan();
+		let direction = self.transform.rotation.rotate_vector(Vector3::FORWARD)
+			+ Vector3::RIGHT * u * self.half_width
+			+ Vector3::UP * v * self.half_height;
 
-		let direction = Vector3::new(px, py, 1.0).normalize();
-
-		let rotated_dir = self
-			.transform
-			.rotation
-			.rotate_vector(direction)
-			.normalize();
-
-		Ray::new(self.transform.position, rotated_dir)
+		Ray::new(self.transform.position, direction.normalize())
 	}
 }

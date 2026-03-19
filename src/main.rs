@@ -21,7 +21,7 @@ use minifb::{Key, Window, WindowOptions};
 
 use crate::entities::Triangle;
 
-const WIDTH: usize = 1800;
+const WIDTH: usize = 1500;
 const HEIGHT: usize = 1000;
 
 fn main() {
@@ -35,7 +35,7 @@ fn main() {
 
 	let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
 
-	let camera = Camera::new(None, None);
+	let camera = Camera::new(None, None, Some(WIDTH as f32 / HEIGHT as f32));
 	let mut scene = Scene::new(camera, WIDTH, HEIGHT);
 
 	let head = Sphere::new(

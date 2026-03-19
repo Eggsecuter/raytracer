@@ -8,11 +8,11 @@ use crate::primitives::RayHit;
 pub struct Sphere {
 	pub color: Color,
 	pub transform: Transform,
-	pub radius: f64,
+	pub radius: f32,
 }
 
 impl Sphere {
-	pub fn new(color: Color, transform: Transform, radius: f64) -> Self {
+	pub fn new(color: Color, transform: Transform, radius: f32) -> Self {
 		Self { color, transform, radius }
 	}
 }
@@ -45,7 +45,7 @@ impl Entity for Sphere {
 		let second_distance = (-projection_len + sqrt_discriminant) / denominator;
 
 		// Choose nearest valid hit in front of ray
-		let mut hit_distance = f64::INFINITY;
+		let mut hit_distance = f32::INFINITY;
 
 		if first_distance > 0.0 {
 			hit_distance = first_distance;

@@ -3,9 +3,9 @@ use std::ops::{Add, AddAssign, Mul, MulAssign};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color {
-	pub red: f64,
-	pub green: f64,
-	pub blue: f64,
+	pub red: f32,
+	pub green: f32,
+	pub blue: f32,
 }
 
 #[allow(dead_code)]
@@ -22,7 +22,7 @@ impl Color {
 }
 
 impl Color {
-	pub fn new(red: f64, green: f64, blue: f64) -> Self {
+	pub fn new(red: f32, green: f32, blue: f32) -> Self {
 		Self {
 			red: Self::clamp(red),
 			green: Self::clamp(green),
@@ -30,11 +30,11 @@ impl Color {
 		}
 	}
 
-	pub fn from_grayscale(intensity: f64) -> Self {
+	pub fn from_grayscale(intensity: f32) -> Self {
 		Self::new(intensity, intensity, intensity)
 	}
 
-	fn clamp(amount: f64) -> f64 {
+	fn clamp(amount: f32) -> f32 {
 		if amount > 1.0 {
 			1.0
 		} else if amount < 0.0 {
@@ -81,10 +81,10 @@ impl MulAssign for Color {
 	}
 }
 
-impl Mul<f64> for Color {
+impl Mul<f32> for Color {
 	type Output = Color;
 
-	fn mul(self, scalar: f64) -> Color {
+	fn mul(self, scalar: f32) -> Color {
 		Color::new(
 			self.red * scalar,
 			self.green * scalar,
@@ -93,8 +93,8 @@ impl Mul<f64> for Color {
 	}
 }
 
-impl MulAssign<f64> for Color {
-	fn mul_assign(&mut self, scalar: f64) {
+impl MulAssign<f32> for Color {
+	fn mul_assign(&mut self, scalar: f32) {
 		*self = *self * scalar
 	}
 }

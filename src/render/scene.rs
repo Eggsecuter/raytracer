@@ -50,7 +50,7 @@ impl Scene {
 	}
 
 	fn get_pixel_color(&self, x: usize, y: usize) -> Color {
-		let ray = self.camera.get_ray(x, y, self.width, self.height);
+		let ray = self.camera.get_ray(x as f32, y as f32, self.width as f32, self.height as f32);
 
 		// find the closest intersection
 		let mut closest_entity: Option<&Box<dyn Entity>> = None;
@@ -101,7 +101,7 @@ impl Scene {
 		}
 
 		// final shadow factor
-		diffuse_color *= in_light_count as f64 / self.global_lights.iter().count().max(1) as f64;
+		diffuse_color *= in_light_count as f32 / self.global_lights.iter().count().max(1) as f32;
 
 		closest_entity.unwrap().color() * diffuse_color + self.ambient_light
 	}

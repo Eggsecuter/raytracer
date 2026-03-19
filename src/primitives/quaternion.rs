@@ -3,10 +3,10 @@ use crate::Vector3;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Quaternion {
-	pub x: f64,
-	pub y: f64,
-	pub z: f64,
-	pub w: f64
+	pub x: f32,
+	pub y: f32,
+	pub z: f32,
+	pub w: f32
 }
 
 #[allow(dead_code)]
@@ -15,7 +15,7 @@ impl Quaternion {
 }
 
 impl Quaternion {
-	pub fn new(x: f64, y: f64, z: f64, w: f64) -> Self {
+	pub fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
 		Self { x, y, z, w }
 	}
 

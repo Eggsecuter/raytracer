@@ -3,13 +3,13 @@ use crate::Vector3;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RayHit {
-	pub distance: f64,
+	pub distance: f32,
 	pub point: Vector3,
 	pub normal: Vector3
 }
 
 impl RayHit {
-	pub fn new(distance: f64, point: Vector3, normal: Vector3) -> Self {
+	pub fn new(distance: f32, point: Vector3, normal: Vector3) -> Self {
 		Self { distance, point, normal }
 	}
 }

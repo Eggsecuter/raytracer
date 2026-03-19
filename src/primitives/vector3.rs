@@ -3,9 +3,9 @@ use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign, N
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vector3 {
-	pub x: f64,
-	pub y: f64,
-	pub z: f64
+	pub x: f32,
+	pub y: f32,
+	pub z: f32
 }
 
 #[allow(dead_code)]
@@ -20,11 +20,11 @@ impl Vector3 {
 }
 
 impl Vector3 {
-	pub fn new(x: f64, y: f64, z: f64) -> Vector3 {
+	pub fn new(x: f32, y: f32, z: f32) -> Vector3 {
 		Self { x, y, z }
 	}
 
-	pub fn length(&self) -> f64 {
+	pub fn length(&self) -> f32 {
 		(self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
 	}
 
@@ -46,11 +46,11 @@ impl Vector3 {
 		)
 	}
 
-	pub fn dot(&self, other: &Vector3) -> f64 {
+	pub fn dot(&self, other: &Vector3) -> f32 {
 		self.x * other.x + self.y * other.y + self.z * other.z
 	}
 
-	pub fn angle(&self, other: &Vector3) -> f64 {
+	pub fn angle(&self, other: &Vector3) -> f32 {
 		(self.dot(other) / (self.length() * other.length())).acos()
 	}
 }
@@ -97,16 +97,16 @@ impl MulAssign for Vector3 {
 	}
 }
 
-impl Mul<f64> for Vector3 {
+impl Mul<f32> for Vector3 {
 	type Output = Vector3;
 
-	fn mul(self, factor: f64) -> Vector3 {
+	fn mul(self, factor: f32) -> Vector3 {
 		Vector3::new(self.x * factor, self.y * factor, self.z * factor)
 	}
 }
 
-impl MulAssign<f64> for Vector3 {
-	fn mul_assign(&mut self, other: f64) {
+impl MulAssign<f32> for Vector3 {
+	fn mul_assign(&mut self, other: f32) {
 		*self = *self * other;
 	}
 }
@@ -125,16 +125,16 @@ impl DivAssign for Vector3 {
 	}
 }
 
-impl Div<f64> for Vector3 {
+impl Div<f32> for Vector3 {
 	type Output = Vector3;
 
-	fn div(self, factor: f64) -> Vector3 {
+	fn div(self, factor: f32) -> Vector3 {
 		Vector3::new(self.x / factor, self.y / factor, self.z / factor)
 	}
 }
 
-impl DivAssign<f64> for Vector3 {
-	fn div_assign(&mut self, other: f64) {
+impl DivAssign<f32> for Vector3 {
+	fn div_assign(&mut self, other: f32) {
 		*self = *self / other;
 	}
 }
