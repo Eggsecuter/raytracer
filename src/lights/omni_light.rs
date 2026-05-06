@@ -21,7 +21,8 @@ impl Light for OmniLight {
 	}
 
 	fn calculate_color(&self, ray_hit: &RayHit) -> Color {
-		let intensity = (self.position - ray_hit.point).dot(&ray_hit.normal);
+		let light_dir = (self.position - ray_hit.point).normalize();
+		let intensity = light_dir.dot(&ray_hit.normal).max(0.0);
 
 		self.color * intensity
 	}

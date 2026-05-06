@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter, Result};
-use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign, Neg};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vector3 {
@@ -10,13 +10,41 @@ pub struct Vector3 {
 
 #[allow(dead_code)]
 impl Vector3 {
-	pub const ZERO: Vector3 = Vector3 { x: 0.0, y: 0.0, z: 0.0 };
-	pub const RIGHT: Vector3 = Vector3 { x: 1.0, y: 0.0, z: 0.0 };
-	pub const UP: Vector3 = Vector3 { x: 0.0, y: 1.0, z: 0.0 };
-	pub const LEFT: Vector3 = Vector3 { x: -1.0, y: 0.0, z: 0.0 };
-	pub const DOWN: Vector3 = Vector3 { x: 0.0, y: -1.0, z: 0.0 };
-	pub const FORWARD: Vector3 = Vector3 { x: 0.0, y: 0.0, z: 1.0 };
-	pub const BACKWARD: Vector3 = Vector3 { x: 0.0, y: 0.0, z: -1.0 };
+	pub const ZERO: Vector3 = Vector3 {
+		x: 0.0,
+		y: 0.0,
+		z: 0.0,
+	};
+	pub const RIGHT: Vector3 = Vector3 {
+		x: 1.0,
+		y: 0.0,
+		z: 0.0,
+	};
+	pub const UP: Vector3 = Vector3 {
+		x: 0.0,
+		y: 1.0,
+		z: 0.0,
+	};
+	pub const LEFT: Vector3 = Vector3 {
+		x: -1.0,
+		y: 0.0,
+		z: 0.0,
+	};
+	pub const DOWN: Vector3 = Vector3 {
+		x: 0.0,
+		y: -1.0,
+		z: 0.0,
+	};
+	pub const FORWARD: Vector3 = Vector3 {
+		x: 0.0,
+		y: 0.0,
+		z: 1.0,
+	};
+	pub const BACKWARD: Vector3 = Vector3 {
+		x: 0.0,
+		y: 0.0,
+		z: -1.0,
+	};
 }
 
 impl Vector3 {
@@ -48,10 +76,6 @@ impl Vector3 {
 
 	pub fn dot(&self, other: &Vector3) -> f32 {
 		self.x * other.x + self.y * other.y + self.z * other.z
-	}
-
-	pub fn angle(&self, other: &Vector3) -> f32 {
-		(self.dot(other) / (self.length() * other.length())).acos()
 	}
 }
 

@@ -1,17 +1,22 @@
-use std::fmt::{Display, Formatter, Result};
 use crate::Vector3;
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Quaternion {
 	pub x: f32,
 	pub y: f32,
 	pub z: f32,
-	pub w: f32
+	pub w: f32,
 }
 
 #[allow(dead_code)]
 impl Quaternion {
-	pub const IDENTITY: Quaternion = Quaternion { x: 0.0, y: 0.0, z: 0.0, w: 1.0 };
+	pub const IDENTITY: Quaternion = Quaternion {
+		x: 0.0,
+		y: 0.0,
+		z: 0.0,
+		w: 1.0,
+	};
 }
 
 impl Quaternion {
@@ -61,6 +66,10 @@ impl Quaternion {
 
 impl Display for Quaternion {
 	fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-		write!(f, "Quaternion[{}, {}, {}, {}]", self.x, self.y, self.z, self.w)
+		write!(
+			f,
+			"Quaternion[{}, {}, {}, {}]",
+			self.x, self.y, self.z, self.w
+		)
 	}
 }

@@ -1,7 +1,7 @@
 use crate::primitives::ray::Ray;
 use crate::primitives::transform::Transform;
 use crate::primitives::vector3::Vector3;
-use crate::utilities::angle::Angle;
+use crate::utilities::Angle;
 
 #[derive(Debug, Clone)]
 pub struct Camera {

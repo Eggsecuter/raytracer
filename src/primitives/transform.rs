@@ -1,5 +1,5 @@
-use std::fmt::{Display, Formatter, Result};
 use crate::{Vector3, primitives::Quaternion};
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Transform {

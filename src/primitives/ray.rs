@@ -1,5 +1,5 @@
-use std::fmt::{Display, Formatter, Result};
 use crate::Vector3;
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ray {

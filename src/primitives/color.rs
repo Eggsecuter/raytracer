@@ -10,15 +10,47 @@ pub struct Color {
 
 #[allow(dead_code)]
 impl Color {
-	pub const BLACK: Color = Color { red: 0.0, green: 0.0, blue: 0.0 };
-	pub const WHITE: Color = Color { red: 1.0, green: 1.0, blue: 1.0 };
-	pub const RED: Color = Color { red: 1.0, green: 0.0, blue: 0.0 };
-	pub const GREEN: Color = Color { red: 0.0, green: 1.0, blue: 0.0 };
-	pub const BLUE: Color = Color { red: 0.0, green: 0.0, blue: 1.0 };
+	pub const BLACK: Color = Color {
+		red: 0.0,
+		green: 0.0,
+		blue: 0.0,
+	};
+	pub const WHITE: Color = Color {
+		red: 1.0,
+		green: 1.0,
+		blue: 1.0,
+	};
+	pub const RED: Color = Color {
+		red: 1.0,
+		green: 0.0,
+		blue: 0.0,
+	};
+	pub const GREEN: Color = Color {
+		red: 0.0,
+		green: 1.0,
+		blue: 0.0,
+	};
+	pub const BLUE: Color = Color {
+		red: 0.0,
+		green: 0.0,
+		blue: 1.0,
+	};
 
-	pub const YELLOW: Color = Color { red: 1.0, green: 1.0, blue: 0.0 };
-	pub const MAGENTA: Color = Color { red: 1.0, green: 0.0, blue: 1.0 };
-	pub const CYAN: Color = Color { red: 0.0, green: 1.0, blue: 1.0 };
+	pub const YELLOW: Color = Color {
+		red: 1.0,
+		green: 1.0,
+		blue: 0.0,
+	};
+	pub const MAGENTA: Color = Color {
+		red: 1.0,
+		green: 0.0,
+		blue: 1.0,
+	};
+	pub const CYAN: Color = Color {
+		red: 0.0,
+		green: 1.0,
+		blue: 1.0,
+	};
 }
 
 impl Color {
@@ -35,13 +67,7 @@ impl Color {
 	}
 
 	fn clamp(amount: f32) -> f32 {
-		if amount > 1.0 {
-			1.0
-		} else if amount < 0.0 {
-			0.0
-		} else {
-			amount
-		}
+		amount.clamp(0.0, 1.0)
 	}
 }
 
@@ -85,11 +111,7 @@ impl Mul<f32> for Color {
 	type Output = Color;
 
 	fn mul(self, scalar: f32) -> Color {
-		Color::new(
-			self.red * scalar,
-			self.green * scalar,
-			self.blue * scalar
-		)
+		Color::new(self.red * scalar, self.green * scalar, self.blue * scalar)
 	}
 }
 

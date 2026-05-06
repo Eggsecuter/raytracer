@@ -26,10 +26,12 @@ impl Entity for Triangle {
 	}
 
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
+		const EPSILON: f32 = 1e-6;
+
 		let perpendicular_vector = ray.direction.cross(self.edge2);
 		let determinant = self.edge1.dot(&perpendicular_vector);
 
-		if determinant < 0.0 {
+		if determinant <= EPSILON {
 			return None;
 		}
 
@@ -37,7 +39,7 @@ impl Entity for Triangle {
 		let origin_to_vertex = ray.origin - self.v0;
 		let barycentric_u = origin_to_vertex.dot(&perpendicular_vector) * inverse_determinant;
 
-		if barycentric_u < 0.0 || barycentric_u > 1.0 {
+		if !(0.0..=1.0).contains(&barycentric_u) {
 			return None;
 		}
 

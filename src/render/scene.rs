@@ -1,9 +1,9 @@
-use crate::primitives::Ray;
-use crate::render::Camera;
 use crate::entities::entity::Entity;
 use crate::lights::light::Light;
+use crate::primitives::Ray;
 use crate::primitives::color::Color;
 use crate::primitives::ray_hit::RayHit;
+use crate::render::Camera;
 
 use rayon::prelude::*;
 
@@ -37,14 +37,14 @@ impl Scene {
 			.par_chunks_mut(self.width)
 			.enumerate()
 			.for_each(|(y, row)| {
-				for x in 0..self.width {
+				for (x, pixel) in row.iter_mut().enumerate().take(self.width) {
 					let color = self.get_pixel_color(x, y);
 
 					let r = (color.red * 255.0) as u32;
 					let g = (color.green * 255.0) as u32;
 					let b = (color.blue * 255.0) as u32;
 
-					row[x] = (r << 16) | (g << 8) | b;
+					*pixel = (r << 16) | (g << 8) | b;
 				}
 			});
 	}
@@ -57,13 +57,12 @@ impl Scene {
 		let mut closest_intersection: Option<RayHit> = None;
 
 		for entity in &self.entities {
-			if let Some(hit) = entity.intersect(&ray) {
-				if closest_intersection.is_none()
-					|| hit.distance <= closest_intersection.as_ref().unwrap().distance
-				{
-					closest_entity = Some(entity);
-					closest_intersection = Some(hit);
-				}
+			if let Some(hit) = entity.intersect(&ray)
+				&& (closest_intersection.is_none()
+					|| hit.distance <= closest_intersection.as_ref().unwrap().distance)
+			{
+				closest_entity = Some(entity);
+				closest_intersection = Some(hit);
 			}
 		}
 
@@ -80,17 +79,20 @@ impl Scene {
 		for light in &self.global_lights {
 			let to_light = light.position() - intersection.point;
 			let distance_to_light = to_light.length();
-			let shadow_ray = Ray::new(intersection.point + intersection.normal * 1e-4, to_light.normalize());
+			let shadow_ray = Ray::new(
+				intersection.point + intersection.normal * 1e-4,
+				to_light.normalize(),
+			);
 
 			// check if point is in shadow
 			let mut in_light = true;
 
 			for other_entity in &self.entities {
-				if let Some(hit) = other_entity.intersect(&shadow_ray) {
-					if hit.distance < distance_to_light {
-						in_light = false;
-						break;
-					}
+				if let Some(hit) = other_entity.intersect(&shadow_ray)
+					&& hit.distance < distance_to_light
+				{
+					in_light = false;
+					break;
 				}
 			}
 
@@ -101,7 +103,7 @@ impl Scene {
 		}
 
 		// final shadow factor
-		diffuse_color *= in_light_count as f32 / self.global_lights.iter().count().max(1) as f32;
+		diffuse_color *= in_light_count as f32 / self.global_lights.len().max(1) as f32;
 
 		closest_entity.unwrap().color() * diffuse_color + self.ambient_light
 	}
