@@ -5,6 +5,7 @@ impl Angle {
 	pub const FULL_DEGREE: f32 = 360.0;
 
 	/// Convert radians to degrees
+	#[allow(dead_code)]
 	pub fn to_degree(radian: f32) -> f32 {
 		radian / Self::FULL_RADIANT * Self::FULL_DEGREE
 	}

@@ -24,6 +24,7 @@ impl Quaternion {
 		Self { x, y, z, w }
 	}
 
+	#[allow(dead_code)]
 	pub fn from_euler(euler: Vector3) -> Self {
 		let (cx, sx) = ((euler.x * 0.5).cos(), (euler.x * 0.5).sin());
 		let (cy, sy) = ((euler.y * 0.5).cos(), (euler.y * 0.5).sin());
@@ -50,6 +51,7 @@ impl Quaternion {
 		Quaternion::new(-self.x, -self.y, -self.z, self.w)
 	}
 
+	#[allow(dead_code)]
 	pub fn normalize(&self) -> Quaternion {
 		let length = (self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w).sqrt();
 
