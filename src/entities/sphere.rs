@@ -1,17 +1,18 @@
 use crate::entities::Entity;
-use crate::primitives::{Color, Ray, RayHit, Transform};
+use crate::materials::Material;
+use crate::primitives::{Ray, RayHit, Transform};
 
 #[derive(Debug, PartialEq)]
 pub struct Sphere {
-	pub color: Color,
+	pub material: Material,
 	pub transform: Transform,
 	pub radius: f32,
 }
 
 impl Sphere {
-	pub fn new(color: Color, transform: Transform, radius: f32) -> Self {
+	pub fn new(material: Material, transform: Transform, radius: f32) -> Self {
 		Self {
-			color,
+			material,
 			transform,
 			radius,
 		}
@@ -65,7 +66,7 @@ impl Entity for Sphere {
 			hit_distance,
 			hit_point,
 			surface_normal,
-			self.color
+			self.material
 		))
 	}
 }

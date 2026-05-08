@@ -62,10 +62,6 @@ impl Color {
 		}
 	}
 
-	pub fn from_grayscale(intensity: f32) -> Self {
-		Self::new(intensity, intensity, intensity)
-	}
-
 	fn clamp(amount: f32) -> f32 {
 		amount.clamp(0.0, 1.0)
 	}

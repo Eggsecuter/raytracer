@@ -1,5 +1,6 @@
 use crate::entities::{Entity, Triangle};
-use crate::primitives::{Color, Ray, RayHit, Vector3};
+use crate::materials::Material;
+use crate::primitives::{Ray, RayHit, Vector3};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Quad {
@@ -7,9 +8,9 @@ pub struct Quad {
 }
 
 impl Quad {
-	pub fn new(color: Color, a: Vector3, b: Vector3, c: Vector3, d: Vector3) -> Self {
+	pub fn new(material: Material, a: Vector3, b: Vector3, c: Vector3, d: Vector3) -> Self {
 		Self {
-			triangles: [Triangle::new(color, a, b, c), Triangle::new(color, a, c, d)],
+			triangles: [Triangle::new(material, a, b, c), Triangle::new(material, a, c, d)],
 		}
 	}
 }

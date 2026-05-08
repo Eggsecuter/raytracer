@@ -1,9 +1,10 @@
 use crate::entities::Entity;
+use crate::materials::Material;
 use crate::primitives::*;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Triangle {
-	pub color: Color,
+	pub material: Material,
 	pub v0: Vector3,
 	pub edge1: Vector3,
 	pub edge2: Vector3,
@@ -11,13 +12,13 @@ pub struct Triangle {
 }
 
 impl Triangle {
-	pub fn new(color: Color, v0: Vector3, v1: Vector3, v2: Vector3) -> Self {
+	pub fn new(material: Material, v0: Vector3, v1: Vector3, v2: Vector3) -> Self {
 		let edge1 = v1 - v0;
 		let edge2 = v2 - v0;
 		let normal = edge1.cross(edge2).normalize();
 
 		Self {
-			color,
+			material,
 			v0,
 			edge1,
 			edge2,
@@ -28,12 +29,10 @@ impl Triangle {
 
 impl Entity for Triangle {
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
-		const EPSILON: f32 = 1e-6;
-
 		let perpendicular_vector = ray.direction.cross(self.edge2);
 		let determinant = self.edge1.dot(&perpendicular_vector);
 
-		if determinant <= EPSILON {
+		if determinant <= 1e-6 {
 			return None;
 		}
 
@@ -64,7 +63,7 @@ impl Entity for Triangle {
 			distance_along_ray,
 			intersection_point,
 			self.normal,
-			self.color
+			self.material
 		))
 	}
 }

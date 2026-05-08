@@ -16,7 +16,7 @@ pub struct Scene {
 	pub global_lights: Vec<Box<dyn Light>>,
 
 	background_color: Color,
-	ambient_light: Color,
+	trace_depth: i32
 }
 
 impl Scene {
@@ -28,7 +28,7 @@ impl Scene {
 			entities: Vec::new(),
 			global_lights: Vec::new(),
 			background_color: Color::BLACK,
-			ambient_light: Color::from_grayscale(0.05),
+			trace_depth: 10
 		}
 	}
 
@@ -39,7 +39,7 @@ impl Scene {
 			.for_each(|(y, row)| {
 				for (x, pixel) in row.iter_mut().enumerate().take(self.width) {
 					let ray = self.camera.get_ray(x as f32, y as f32, self.width as f32, self.height as f32);
-					let color = self.trace_ray(ray);
+					let color = self.trace_ray(ray, self.trace_depth);
 
 					let r = (color.red * 255.0) as u32;
 					let g = (color.green * 255.0) as u32;
@@ -50,7 +50,11 @@ impl Scene {
 			});
 	}
 
-	fn trace_ray(&self, ray: Ray) -> Color {
+	fn trace_ray(&self, ray: Ray, depth: i32) -> Color {
+		if depth == 0 {
+			return self.background_color;
+		}
+
 		let intersection = self.intersect(ray);
 
 		let hit = match intersection {
@@ -58,7 +62,18 @@ impl Scene {
 			None => return self.background_color
 		};
 
-		return self.shade(hit)
+		let shaded_color = self.shade(hit);
+
+		if hit.material.smoothness <= 0.0 {
+			return shaded_color;
+		}
+
+		let reflected_ray = self.reflect(ray, hit);
+		let reflected_color = self.trace_ray(reflected_ray, depth - 1);
+
+		// blend rays
+		return shaded_color * (1.0 - hit.material.smoothness)
+			+ reflected_color * hit.material.smoothness;
 	}
 
 	fn intersect(&self, ray: Ray) -> Option<RayHit> {
@@ -75,6 +90,13 @@ impl Scene {
 		}
 
 		return closest_hit
+	}
+
+	fn reflect(&self, ray: Ray, hit: RayHit) -> Ray {
+		let point = hit.point + hit.normal * 1e-2;
+		let direction = ray.direction - hit.normal * 2.0 * ray.direction.dot(&hit.normal);
+
+		return Ray::new(point, direction);
 	}
 
 	fn shade(&self, hit: RayHit) -> Color {
@@ -111,6 +133,6 @@ impl Scene {
 		// final shadow factor
 		diffuse_color *= in_light_count as f32 / self.global_lights.len().max(1) as f32;
 
-		return hit.color * diffuse_color + self.ambient_light
+		return hit.material.diffuse_color * diffuse_color + hit.material.ambient_color
 	}
 }

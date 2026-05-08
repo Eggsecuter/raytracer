@@ -1,4 +1,4 @@
-use crate::primitives::{Color, Vector3};
+use crate::{materials::Material, primitives::{Vector3}};
 use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -6,16 +6,16 @@ pub struct RayHit {
 	pub distance: f32,
 	pub point: Vector3,
 	pub normal: Vector3,
-	pub color: Color
+	pub material: Material
 }
 
 impl RayHit {
-	pub fn new(distance: f32, point: Vector3, normal: Vector3, color: Color) -> Self {
+	pub fn new(distance: f32, point: Vector3, normal: Vector3, material: Material) -> Self {
 		Self {
 			distance,
 			point,
 			normal,
-			color
+			material
 		}
 	}
 }
@@ -25,7 +25,7 @@ impl Display for RayHit {
 		write!(
 			f,
 			"RayHit[{}, {}, {}, {}]",
-			self.distance, self.point, self.normal, self.color
+			self.distance, self.point, self.normal, self.material
 		)
 	}
 }
