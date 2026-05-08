@@ -19,10 +19,6 @@ impl Sphere {
 }
 
 impl Entity for Sphere {
-	fn color(&self) -> Color {
-		self.color
-	}
-
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
 		// Vector from sphere center to ray origin
 		let origin_to_center = ray.origin - self.transform.position;
@@ -65,6 +61,11 @@ impl Entity for Sphere {
 		let hit_point = ray.origin + ray.direction * hit_distance;
 		let surface_normal = (hit_point - self.transform.position).normalize();
 
-		Some(RayHit::new(hit_distance, hit_point, surface_normal))
+		Some(RayHit::new(
+			hit_distance,
+			hit_point,
+			surface_normal,
+			self.color
+		))
 	}
 }

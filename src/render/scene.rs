@@ -38,7 +38,8 @@ impl Scene {
 			.enumerate()
 			.for_each(|(y, row)| {
 				for (x, pixel) in row.iter_mut().enumerate().take(self.width) {
-					let color = self.get_pixel_color(x, y);
+					let ray = self.camera.get_ray(x as f32, y as f32, self.width as f32, self.height as f32);
+					let color = self.trace_ray(ray);
 
 					let r = (color.red * 255.0) as u32;
 					let g = (color.green * 255.0) as u32;
@@ -49,40 +50,43 @@ impl Scene {
 			});
 	}
 
-	fn get_pixel_color(&self, x: usize, y: usize) -> Color {
-		let ray = self
-			.camera
-			.get_ray(x as f32, y as f32, self.width as f32, self.height as f32);
+	fn trace_ray(&self, ray: Ray) -> Color {
+		let intersection = self.intersect(ray);
 
+		let hit = match intersection {
+			Some(intersection) => intersection,
+			None => return self.background_color
+		};
+
+		return self.shade(hit)
+	}
+
+	fn intersect(&self, ray: Ray) -> Option<RayHit> {
 		// find the closest intersection
-		let mut closest_entity: Option<&Box<dyn Entity>> = None;
-		let mut closest_intersection: Option<RayHit> = None;
+		let mut closest_hit: Option<RayHit> = None;
 
 		for entity in &self.entities {
 			if let Some(hit) = entity.intersect(&ray)
-				&& (closest_intersection.is_none()
-					|| hit.distance <= closest_intersection.as_ref().unwrap().distance)
+				&& (closest_hit.is_none()
+					|| hit.distance <= closest_hit.as_ref().unwrap().distance)
 			{
-				closest_entity = Some(entity);
-				closest_intersection = Some(hit);
+				closest_hit = Some(hit);
 			}
 		}
 
-		// unwrap intersection or return background
-		let intersection = match closest_intersection {
-			Some(hit) => hit,
-			None => return self.background_color,
-		};
+		return closest_hit
+	}
 
+	fn shade(&self, hit: RayHit) -> Color {
 		// calculate diffuse color
 		let mut diffuse_color = Color::BLACK;
 		let mut in_light_count = 0;
 
 		for light in &self.global_lights {
-			let to_light = light.position() - intersection.point;
+			let to_light = light.position() - hit.point;
 			let distance_to_light = to_light.length();
 			let shadow_ray = Ray::new(
-				intersection.point + intersection.normal * 1e-4,
+				hit.point + hit.normal * 1e-4,
 				to_light.normalize(),
 			);
 
@@ -99,7 +103,7 @@ impl Scene {
 			}
 
 			if in_light {
-				diffuse_color += light.calculate_color(&intersection);
+				diffuse_color += light.calculate_color(&hit);
 				in_light_count += 1;
 			}
 		}
@@ -107,6 +111,6 @@ impl Scene {
 		// final shadow factor
 		diffuse_color *= in_light_count as f32 / self.global_lights.len().max(1) as f32;
 
-		closest_entity.unwrap().color() * diffuse_color + self.ambient_light
+		return hit.color * diffuse_color + self.ambient_light
 	}
 }

@@ -7,22 +7,18 @@ use crate::utilities::Angle;
 pub struct Camera {
 	pub transform: Transform,
 	pub half_height: f32,
-	pub half_width: f32,
+	pub half_width: f32
 }
 
 impl Camera {
-	pub fn new(
-		transform: Option<Transform>,
-		y_fov: Option<f32>,
-		aspect_ratio: Option<f32>,
-	) -> Self {
+	pub fn new(transform: Option<Transform>, y_fov: Option<f32>, aspect_ratio: Option<f32>) -> Self {
 		let y_fov = y_fov.unwrap_or(Angle::to_radian(60.0));
 		let half_height = (y_fov / 2.0).tan();
 
 		Self {
 			transform: transform.unwrap_or(Transform::new(None, None)),
 			half_height,
-			half_width: half_height * aspect_ratio.unwrap_or(1.5),
+			half_width: half_height * aspect_ratio.unwrap_or(1.5)
 		}
 	}
 

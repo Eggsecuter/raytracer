@@ -27,10 +27,6 @@ impl Triangle {
 }
 
 impl Entity for Triangle {
-	fn color(&self) -> Color {
-		self.color
-	}
-
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
 		const EPSILON: f32 = 1e-6;
 
@@ -68,6 +64,7 @@ impl Entity for Triangle {
 			distance_along_ray,
 			intersection_point,
 			self.normal,
+			self.color
 		))
 	}
 }
