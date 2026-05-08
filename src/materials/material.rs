@@ -197,9 +197,9 @@ impl Material {
 	#[allow(dead_code)]
 	pub fn from_color(color: Color) -> Self {
 		Self {
-			ambient_color: color,
-			diffuse_color: color,
-			specular_color: color,
+			ambient_color: color  * 0.1,
+			diffuse_color: color * 0.8,
+			specular_color: color * 0.8,
 			smoothness: 0.0
 		}
 	}
