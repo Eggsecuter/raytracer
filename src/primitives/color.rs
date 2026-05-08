@@ -78,7 +78,7 @@ impl Add for Color {
 		Color::new(
 			self.red + other.red,
 			self.green + other.green,
-			self.blue + other.blue
+			self.blue + other.blue,
 		)
 	}
 }
@@ -96,7 +96,7 @@ impl Mul for Color {
 		Color::new(
 			self.red * other.red,
 			self.green * other.green,
-			self.blue * other.blue
+			self.blue * other.blue,
 		)
 	}
 }

@@ -1,10 +1,10 @@
-use crate::Vector3;
+use crate::primitives::Vector3;
 use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ray {
 	pub origin: Vector3,
-	pub direction: Vector3
+	pub direction: Vector3,
 }
 
 impl Ray {

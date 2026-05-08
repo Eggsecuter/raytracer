@@ -1,10 +1,10 @@
-use crate::{Vector3, primitives::Quaternion};
+use crate::primitives::{Quaternion, Vector3};
 use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Transform {
 	pub position: Vector3,
-	pub rotation: Quaternion
+	pub rotation: Quaternion,
 }
 
 impl Transform {

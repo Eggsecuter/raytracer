@@ -5,7 +5,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 pub struct Vector3 {
 	pub x: f32,
 	pub y: f32,
-	pub z: f32
+	pub z: f32,
 }
 
 #[allow(dead_code)]
@@ -70,7 +70,7 @@ impl Vector3 {
 		Vector3::new(
 			self.y * other.z - self.z * other.y,
 			self.z * other.x - self.x * other.z,
-			self.x * other.y - self.y * other.x
+			self.x * other.y - self.y * other.x,
 		)
 	}
 

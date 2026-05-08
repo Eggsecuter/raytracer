@@ -7,7 +7,7 @@ pub struct Triangle {
 	pub v0: Vector3,
 	pub edge1: Vector3,
 	pub edge2: Vector3,
-	pub normal: Vector3
+	pub normal: Vector3,
 }
 
 impl Triangle {
@@ -16,7 +16,13 @@ impl Triangle {
 		let edge2 = v2 - v0;
 		let normal = edge1.cross(edge2).normalize();
 
-		Self { color, v0, edge1, edge2, normal }
+		Self {
+			color,
+			v0,
+			edge1,
+			edge2,
+			normal,
+		}
 	}
 }
 
@@ -61,7 +67,7 @@ impl Entity for Triangle {
 		Some(RayHit::new(
 			distance_along_ray,
 			intersection_point,
-			self.normal
+			self.normal,
 		))
 	}
 }

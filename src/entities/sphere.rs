@@ -1,8 +1,5 @@
-use crate::Color;
-use crate::Transform;
 use crate::entities::Entity;
-use crate::primitives::Ray;
-use crate::primitives::RayHit;
+use crate::primitives::{Color, Ray, RayHit, Transform};
 
 #[derive(Debug, PartialEq)]
 pub struct Sphere {
@@ -13,7 +10,11 @@ pub struct Sphere {
 
 impl Sphere {
 	pub fn new(color: Color, transform: Transform, radius: f32) -> Self {
-		Self { color, transform, radius }
+		Self {
+			color,
+			transform,
+			radius,
+		}
 	}
 }
 
@@ -31,7 +32,8 @@ impl Entity for Sphere {
 		let projection_len = 2.0 * ray.direction.dot(&origin_to_center);
 		let center_dist_sq = origin_to_center.dot(&origin_to_center) - self.radius * self.radius;
 
-		let discriminant = projection_len * projection_len - 4.0 * direction_len_sq * center_dist_sq;
+		let discriminant =
+			projection_len * projection_len - 4.0 * direction_len_sq * center_dist_sq;
 
 		// No intersection
 		if discriminant < 0.0 {

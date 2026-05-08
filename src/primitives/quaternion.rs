@@ -1,4 +1,4 @@
-use crate::Vector3;
+use crate::primitives::Vector3;
 use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -34,7 +34,7 @@ impl Quaternion {
 			sx * cy * cz + cx * sy * sz,
 			cx * sy * cz - sx * cy * sz,
 			cx * cy * sz + sx * sy * cz,
-			cx * cy * cz - sx * sy * sz
+			cx * cy * cz - sx * sy * sz,
 		)
 	}
 
@@ -43,7 +43,7 @@ impl Quaternion {
 			self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y,
 			self.w * other.y - self.x * other.z + self.y * other.w + self.z * other.x,
 			self.w * other.z + self.x * other.y - self.y * other.x + self.z * other.w,
-			self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z
+			self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z,
 		)
 	}
 
@@ -55,7 +55,12 @@ impl Quaternion {
 	pub fn normalize(&self) -> Quaternion {
 		let length = (self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w).sqrt();
 
-		Quaternion::new(self.x / length, self.y / length, self.z / length, self.w / length)
+		Quaternion::new(
+			self.x / length,
+			self.y / length,
+			self.z / length,
+			self.w / length,
+		)
 	}
 
 	pub fn rotate_vector(&self, delta: Vector3) -> Vector3 {

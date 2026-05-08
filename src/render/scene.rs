@@ -50,7 +50,9 @@ impl Scene {
 	}
 
 	fn get_pixel_color(&self, x: usize, y: usize) -> Color {
-		let ray = self.camera.get_ray(x as f32, y as f32, self.width as f32, self.height as f32);
+		let ray = self
+			.camera
+			.get_ray(x as f32, y as f32, self.width as f32, self.height as f32);
 
 		// find the closest intersection
 		let mut closest_entity: Option<&Box<dyn Entity>> = None;

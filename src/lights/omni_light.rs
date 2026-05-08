@@ -1,12 +1,10 @@
-use crate::Color;
-use crate::Vector3;
 use crate::lights::Light;
-use crate::primitives::RayHit;
+use crate::primitives::{Color, RayHit, Vector3};
 
 #[derive(Debug, PartialEq)]
 pub struct OmniLight {
 	pub color: Color,
-	pub position: Vector3
+	pub position: Vector3,
 }
 
 impl OmniLight {
