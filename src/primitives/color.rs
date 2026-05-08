@@ -56,14 +56,14 @@ impl Color {
 impl Color {
 	pub fn new(red: f32, green: f32, blue: f32) -> Self {
 		Self {
-			red: Self::clamp(red),
-			green: Self::clamp(green),
-			blue: Self::clamp(blue),
+			red: red,
+			green: green,
+			blue: blue,
 		}
 	}
 
-	fn clamp(amount: f32) -> f32 {
-		amount.clamp(0.0, 1.0)
+	pub fn clamped(&self) -> Color {
+		Color::new(self.red.clamp(0.0, 1.0), self.green.clamp(0.0, 1.0), self.blue.clamp(0.0, 1.0))
 	}
 }
 

@@ -1,6 +1,6 @@
 use crate::entities::entity::Entity;
 use crate::lights::light::Light;
-use crate::primitives::Ray;
+use crate::primitives::{Ray, Vector3};
 use crate::primitives::color::Color;
 use crate::primitives::ray_hit::RayHit;
 use crate::render::Camera;
@@ -16,7 +16,8 @@ pub struct Scene {
 	pub global_lights: Vec<Box<dyn Light>>,
 
 	background_color: Color,
-	trace_depth: i32
+	trace_depth: i32,
+	smooth_samples: i32
 }
 
 impl Scene {
@@ -28,7 +29,8 @@ impl Scene {
 			entities: Vec::new(),
 			global_lights: Vec::new(),
 			background_color: Color::BLACK,
-			trace_depth: 10
+			trace_depth: 10,
+			smooth_samples: 16
 		}
 	}
 
@@ -39,7 +41,7 @@ impl Scene {
 			.for_each(|(y, row)| {
 				for (x, pixel) in row.iter_mut().enumerate().take(self.width) {
 					let ray = self.camera.get_ray(x as f32, y as f32, self.width as f32, self.height as f32);
-					let color = self.trace_ray(ray, self.trace_depth);
+					let color = self.trace_ray(ray, self.trace_depth).clamped();
 
 					let r = (color.red * 255.0) as u32;
 					let g = (color.green * 255.0) as u32;
@@ -68,8 +70,7 @@ impl Scene {
 			return shaded_color;
 		}
 
-		let reflected_ray = self.reflect(ray, hit);
-		let reflected_color = self.trace_ray(reflected_ray, depth - 1);
+		let reflected_color = self.reflect(ray, hit, depth);
 
 		// blend rays
 		return shaded_color * (1.0 - hit.material.smoothness)
@@ -92,11 +93,41 @@ impl Scene {
 		return closest_hit
 	}
 
-	fn reflect(&self, ray: Ray, hit: RayHit) -> Ray {
-		let point = hit.point + hit.normal * 1e-2;
-		let direction = ray.direction - hit.normal * 2.0 * ray.direction.dot(&hit.normal);
+	fn reflect(&self, ray: Ray, hit: RayHit, depth: i32) -> Color {
+		let ideal_reflection = ray.direction - hit.normal * 2.0 * ray.direction.dot(&hit.normal);
+		let roughness = 1.0 - hit.material.smoothness;
 
-		return Ray::new(point, direction);
+		let reflection_point = hit.point + hit.normal * 1e-2;
+		let mut accumulated = Color::BLACK;
+
+		for _ in 0..self.smooth_samples {
+			// generate random perturbation in unit sphere
+			let mut random_dir;
+			loop {
+				random_dir = Vector3::new(
+					rand::random::<f32>() * 2.0 - 1.0,
+					rand::random::<f32>() * 2.0 - 1.0,
+					rand::random::<f32>() * 2.0 - 1.0,
+				);
+
+				if random_dir.length().powi(2) <= 1.0 {
+					break;
+				}
+			}
+
+			// blend reflection with noise
+			let mut direction = (ideal_reflection + random_dir * roughness).normalize();
+
+			// ensure we stay in the same hemisphere as the surface normal
+			if direction.dot(&hit.normal) < 0.0 {
+				direction = ideal_reflection.normalize();
+			}
+
+			let reflected_ray = Ray::new(reflection_point, direction);
+			accumulated = accumulated + self.trace_ray(reflected_ray, depth - 1);
+		}
+
+		accumulated * (1.0 / self.smooth_samples as f32)
 	}
 
 	fn shade(&self, hit: RayHit) -> Color {

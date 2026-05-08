@@ -40,13 +40,13 @@ pub fn build(width: usize, height: usize) -> Scene {
 	scene.entities.push(Box::new(right_wall));
 
 	let first_ball = Sphere::new(
-		Material::BRASS,
+		Material::GOLD,
 		Transform::new(Some(Vector3::new(-0.85, -1.15, 6.0)), None),
 		0.85
 	);
 	scene.entities.push(Box::new(first_ball));
 	let second_ball = Sphere::new(
-		Material::CHROME,
+		Material::SILVER,
 		Transform::new(Some(Vector3::new(1.05, -1.35, 7.2)), None),
 		0.65
 	);

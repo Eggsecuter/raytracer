@@ -13,9 +13,9 @@ pub struct Material {
 #[allow(dead_code)]
 impl Material {
 	pub const MIRROR: Material = Material {
-		ambient_color: Color { red: 1.0, green: 1.0, blue: 1.0 },
-		diffuse_color: Color { red: 1.0, green: 1.0, blue: 1.0 },
-		specular_color: Color { red: 1.0, green: 1.0, blue: 1.0 },
+		ambient_color: Color { red: 0.1, green: 0.1, blue: 0.1 },
+		diffuse_color: Color { red: 0.8, green: 0.8, blue: 0.8 },
+		specular_color: Color { red: 0.6, green: 0.6, blue: 0.6 },
 		smoothness: 1.0,
 	};
 
