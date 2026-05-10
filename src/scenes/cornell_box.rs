@@ -1,4 +1,4 @@
-use crate::entities::{Quad, Sphere};
+use crate::entities::{AabbBox, Quad, Sphere};
 use crate::lights::OmniLight;
 use crate::materials::{DielectricMaterial, LambertMaterial, Material, MetalMaterial};
 use crate::primitives::{Color, Transform, Vector3};
@@ -101,8 +101,19 @@ pub fn build(width: usize, height: usize) -> Scene {
 	);
 	scene.entities.push(Box::new(second_ball));
 
+	let aabb_box = AabbBox::new(
+		Material::Lambert(
+			LambertMaterial::from_color(Color::YELLOW)
+		),
+		Vector3 { x: 1.0, y: -1.5, z: 5.0 },
+		Vector3 { x: 2.0, y: -2.0, z: 6.5 }
+	);
+	scene.entities.push(Box::new(aabb_box));
+
 	let ceiling_light = OmniLight::new(Color::new(0.9, 0.9, 0.9), Vector3::new(0.0, 1.85, 5.8));
 	scene.global_lights.push(Box::new(ceiling_light));
+	let second_ceiling_light = OmniLight::new(Color::new(0.9, 0.9, 0.9), Vector3::new(-1.0, 1.85, 8.0));
+	scene.global_lights.push(Box::new(second_ceiling_light));
 
 	scene
 }
