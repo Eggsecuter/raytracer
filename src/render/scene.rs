@@ -1,5 +1,6 @@
 use crate::entities::entity::Entity;
 use crate::lights::light::Light;
+use crate::materials::{LambertMaterial, Material, MetalMaterial};
 use crate::primitives::{Ray, Vector3};
 use crate::primitives::color::Color;
 use crate::primitives::ray_hit::RayHit;
@@ -29,8 +30,8 @@ impl Scene {
 			entities: Vec::new(),
 			global_lights: Vec::new(),
 			background_color: Color::BLACK,
-			trace_depth: 10,
-			smooth_samples: 16
+			trace_depth: 3,
+			smooth_samples: 32
 		}
 	}
 
@@ -57,24 +58,24 @@ impl Scene {
 			return self.background_color;
 		}
 
-		let intersection = self.intersect(ray);
-
-		let hit = match intersection {
+		let hit = match self.intersect(ray) {
 			Some(intersection) => intersection,
 			None => return self.background_color
 		};
 
-		let shaded_color = self.shade(hit);
+		match hit.material {
+			Material::Lambert(material) => {
+				return self.shade(hit, material)
+			}
 
-		if hit.material.smoothness <= 0.0 {
-			return shaded_color;
+			Material::Metal(material) => {
+				return self.reflect(ray, hit, material, depth) * material.specular
+			}
+
+			Material::Dielectric(material) => {
+				return material.absorption
+			}
 		}
-
-		let reflected_color = self.reflect(ray, hit, depth);
-
-		// blend rays
-		return shaded_color * (1.0 - hit.material.smoothness)
-			+ reflected_color * hit.material.smoothness;
 	}
 
 	fn intersect(&self, ray: Ray) -> Option<RayHit> {
@@ -93,44 +94,7 @@ impl Scene {
 		return closest_hit
 	}
 
-	fn reflect(&self, ray: Ray, hit: RayHit, depth: i32) -> Color {
-		let ideal_reflection = ray.direction - hit.normal * 2.0 * ray.direction.dot(&hit.normal);
-		let roughness = 1.0 - hit.material.smoothness;
-
-		let reflection_point = hit.point + hit.normal * 1e-2;
-		let mut accumulated = Color::BLACK;
-
-		for _ in 0..self.smooth_samples {
-			// generate random perturbation in unit sphere
-			let mut random_dir;
-			loop {
-				random_dir = Vector3::new(
-					rand::random::<f32>() * 2.0 - 1.0,
-					rand::random::<f32>() * 2.0 - 1.0,
-					rand::random::<f32>() * 2.0 - 1.0,
-				);
-
-				if random_dir.length().powi(2) <= 1.0 {
-					break;
-				}
-			}
-
-			// blend reflection with noise
-			let mut direction = (ideal_reflection + random_dir * roughness).normalize();
-
-			// ensure we stay in the same hemisphere as the surface normal
-			if direction.dot(&hit.normal) < 0.0 {
-				direction = ideal_reflection.normalize();
-			}
-
-			let reflected_ray = Ray::new(reflection_point, direction);
-			accumulated = accumulated + self.trace_ray(reflected_ray, depth - 1);
-		}
-
-		accumulated * (1.0 / self.smooth_samples as f32)
-	}
-
-	fn shade(&self, hit: RayHit) -> Color {
+	fn shade(&self, hit: RayHit, material: LambertMaterial) -> Color {
 		// calculate diffuse color
 		let mut diffuse_color = Color::BLACK;
 		let mut in_light_count = 0;
@@ -164,6 +128,38 @@ impl Scene {
 		// final shadow factor
 		diffuse_color *= in_light_count as f32 / self.global_lights.len().max(1) as f32;
 
-		return hit.material.diffuse_color * diffuse_color + hit.material.ambient_color
+		return material.albedo * diffuse_color + material.ambient
+	}
+
+	fn reflect(&self, ray: Ray, hit: RayHit, material: MetalMaterial, depth: i32) -> Color {
+		let ideal_reflection = ray.direction - hit.normal * 2.0 * ray.direction.dot(&hit.normal);
+		let roughness = 1.0 - material.smoothness;
+
+		let reflection_point = hit.point + hit.normal * 1e-2;
+		let mut accumulated = Color::BLACK;
+
+		for _ in 0..self.smooth_samples {
+			// generate random perturbation in unit sphere
+			let mut random_dir;
+			loop {
+				random_dir = Vector3::new(
+					rand::random::<f32>() * 2.0 - 1.0,
+					rand::random::<f32>() * 2.0 - 1.0,
+					rand::random::<f32>() * 2.0 - 1.0,
+				);
+
+				if random_dir.length_squared() <= 1.0 {
+					break;
+				}
+			}
+
+			// blend reflection with noise
+			let direction = (ideal_reflection + random_dir * roughness).normalize();
+
+			let reflected_ray = Ray::new(reflection_point, direction);
+			accumulated = accumulated + self.trace_ray(reflected_ray, depth - 1);
+		}
+
+		accumulated * (1.0 / self.smooth_samples as f32)
 	}
 }

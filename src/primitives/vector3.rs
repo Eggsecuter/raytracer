@@ -53,7 +53,11 @@ impl Vector3 {
 	}
 
 	pub fn length(&self) -> f32 {
-		(self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
+		self.length_squared().sqrt()
+	}
+
+	pub fn length_squared(&self) -> f32 {
+		self.x * self.x + self.y * self.y + self.z * self.z
 	}
 
 	pub fn normalize(&self) -> Vector3 {
