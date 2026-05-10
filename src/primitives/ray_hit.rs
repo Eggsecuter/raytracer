@@ -6,16 +6,18 @@ pub struct RayHit {
 	pub distance: f32,
 	pub point: Vector3,
 	pub normal: Vector3,
-	pub material: Material
+	pub material: Material,
+	pub front_face: bool
 }
 
 impl RayHit {
-	pub fn new(distance: f32, point: Vector3, normal: Vector3, material: Material) -> Self {
+	pub fn new(distance: f32, point: Vector3, normal: Vector3, material: Material, front_face: bool) -> Self {
 		Self {
 			distance,
 			point,
 			normal,
-			material
+			material,
+			front_face
 		}
 	}
 }
@@ -24,8 +26,8 @@ impl Display for RayHit {
 	fn fmt(&self, f: &mut Formatter<'_>) -> Result {
 		write!(
 			f,
-			"RayHit[{}, {}, {}, {}]",
-			self.distance, self.point, self.normal, self.material
+			"RayHit[{}, {}, {}, {}, {}]",
+			self.distance, self.point, self.normal, self.material, self.front_face
 		)
 	}
 }

@@ -33,6 +33,6 @@ impl Camera {
 			+ Vector3::RIGHT * u * self.half_width
 			+ Vector3::UP * v * self.half_height;
 
-		Ray::new(self.transform.position, direction.normalize())
+		Ray::new(self.transform.position, direction.normalize(), true)
 	}
 }

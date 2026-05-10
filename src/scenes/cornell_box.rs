@@ -1,15 +1,12 @@
 use crate::entities::{Quad, Sphere};
 use crate::lights::OmniLight;
-use crate::materials::{LambertMaterial, Material, MetalMaterial};
-use crate::primitives::{Color, Quaternion, Transform, Vector3};
+use crate::materials::{DielectricMaterial, LambertMaterial, Material, MetalMaterial};
+use crate::primitives::{Color, Transform, Vector3};
 use crate::render::{Camera, Scene};
 
 pub fn build(width: usize, height: usize) -> Scene {
 	let camera = Camera::new(
-		Some(Transform::new(
-			Some(Vector3::new(1.0, 0.0, 3.1)),
-			Some(Quaternion::from_euler(Vector3::new(0.0, -0.5, 0.0)))
-		)),
+		None,
 		None,
 		Some(width as f32 / height as f32)
 	);
@@ -88,11 +85,11 @@ pub fn build(width: usize, height: usize) -> Scene {
 	scene.entities.push(Box::new(right_wall));
 
 	let first_ball = Sphere::new(
-		Material::Metal(
-			MetalMaterial::GOLD
+		Material::Dielectric(
+			DielectricMaterial::SAPPHIRE
 		),
-		Transform::new(Some(Vector3::new(-0.85, -1.15, 6.0)), None),
-		0.85
+		Transform::new(Some(Vector3::new(-0.5, -1.0, 4.5)), None),
+		1.0
 	);
 	scene.entities.push(Box::new(first_ball));
 	let second_ball = Sphere::new(

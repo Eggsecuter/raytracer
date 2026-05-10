@@ -1,6 +1,6 @@
 use crate::entities::entity::Entity;
 use crate::lights::light::Light;
-use crate::materials::{LambertMaterial, Material, MetalMaterial};
+use crate::materials::{DielectricMaterial, LambertMaterial, Material, MetalMaterial};
 use crate::primitives::{Ray, Vector3};
 use crate::primitives::color::Color;
 use crate::primitives::ray_hit::RayHit;
@@ -30,7 +30,7 @@ impl Scene {
 			entities: Vec::new(),
 			global_lights: Vec::new(),
 			background_color: Color::BLACK,
-			trace_depth: 3,
+			trace_depth: 4,
 			smooth_samples: 32
 		}
 	}
@@ -73,7 +73,7 @@ impl Scene {
 			}
 
 			Material::Dielectric(material) => {
-				return material.absorption
+				return self.refract(ray, hit, material, depth)
 			}
 		}
 	}
@@ -105,6 +105,7 @@ impl Scene {
 			let shadow_ray = Ray::new(
 				hit.point + hit.normal * 1e-4,
 				to_light.normalize(),
+				true
 			);
 
 			// check if point is in shadow
@@ -132,10 +133,10 @@ impl Scene {
 	}
 
 	fn reflect(&self, ray: Ray, hit: RayHit, material: MetalMaterial, depth: i32) -> Color {
-		let ideal_reflection = ray.direction - hit.normal * 2.0 * ray.direction.dot(&hit.normal);
-		let roughness = 1.0 - material.smoothness;
+		let ideal_reflection = self.get_reflected_direction(ray, hit);
+		let reflection_point = self.get_offset_point(hit);
 
-		let reflection_point = hit.point + hit.normal * 1e-2;
+		let roughness = 1.0 - material.smoothness;
 		let mut accumulated = Color::BLACK;
 
 		for _ in 0..self.smooth_samples {
@@ -156,10 +157,61 @@ impl Scene {
 			// blend reflection with noise
 			let direction = (ideal_reflection + random_dir * roughness).normalize();
 
-			let reflected_ray = Ray::new(reflection_point, direction);
+			let reflected_ray = Ray::new(reflection_point, direction, true);
 			accumulated = accumulated + self.trace_ray(reflected_ray, depth - 1);
 		}
 
 		accumulated * (1.0 / self.smooth_samples as f32)
+	}
+
+	fn refract(&self, ray: Ray, hit: RayHit, material: DielectricMaterial, depth: i32) -> Color {
+		let (eta1, eta2) = if hit.front_face {
+			(1.0, material.refractive_index)
+		} else {
+			(material.refractive_index, 1.0)
+		};
+
+		let reflected_ray = Ray::new(self.get_offset_point(hit), self.get_reflected_direction(ray, hit), hit.front_face);
+		let reflected_color = self.trace_ray(reflected_ray, depth - 1);
+
+		let eta = eta1 / eta2;
+		let cos_theta = -ray.direction.dot(&hit.normal);
+
+		let k = 1.0 - eta * eta * (1.0 - cos_theta * cos_theta);
+
+		// total reflection
+		if k < 0.0 {
+			return reflected_color;
+		}
+
+		let refracted_direction = ray.direction.normalize() * eta + hit.normal.normalize() * (eta * cos_theta - k.sqrt());
+		let refracted_ray = Ray::new(self.get_negative_offset_point(hit), refracted_direction, !hit.front_face);
+		let mut refracted_color = self.trace_ray(refracted_ray, depth - 1);
+
+		if !hit.front_face {
+			refracted_color *= (material.absorption * -hit.distance).exp();
+		}
+
+		let fresnel_factor = self.fresnel_schlick(eta1, eta2, cos_theta);
+
+		return reflected_color * fresnel_factor + refracted_color * (1.0 - fresnel_factor);
+	}
+
+	fn get_offset_point(&self, hit: RayHit) -> Vector3 {
+		hit.point + hit.normal * 1e-3
+	}
+
+	fn get_negative_offset_point(&self, hit: RayHit) -> Vector3 {
+		hit.point - hit.normal * 1e-3
+	}
+
+	fn get_reflected_direction(&self, ray: Ray, hit: RayHit) -> Vector3 {
+		ray.direction - hit.normal * 2.0 * ray.direction.dot(&hit.normal)
+	}
+
+	fn fresnel_schlick(&self, eta1: f32, eta2: f32, cos_theta: f32) -> f32 {
+		let r0 = ((eta1 - eta2) / (eta1 + eta2)).powi(2);
+
+		r0 + (1.0 - r0) * (1.0 - cos_theta).powi(5)
 	}
 }

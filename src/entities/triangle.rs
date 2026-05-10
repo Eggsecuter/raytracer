@@ -32,7 +32,9 @@ impl Entity for Triangle {
 		let perpendicular_vector = ray.direction.cross(self.edge2);
 		let determinant = self.edge1.dot(&perpendicular_vector);
 
-		if determinant <= 1e-6 {
+		let epsilon = 1e-6;
+
+		if ray.check_front && determinant <= epsilon || !ray.check_front && determinant >= -epsilon {
 			return None;
 		}
 
@@ -59,11 +61,14 @@ impl Entity for Triangle {
 
 		let intersection_point = ray.origin + ray.direction * distance_along_ray;
 
+		let normal = if ray.check_front { self.normal } else { -self.normal };
+
 		Some(RayHit::new(
 			distance_along_ray,
 			intersection_point,
-			self.normal,
-			self.material
+			normal,
+			self.material,
+			ray.check_front
 		))
 	}
 }

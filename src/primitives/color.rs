@@ -65,6 +65,14 @@ impl Color {
 	pub fn clamped(&self) -> Color {
 		Color::new(self.red.clamp(0.0, 1.0), self.green.clamp(0.0, 1.0), self.blue.clamp(0.0, 1.0))
 	}
+
+	pub fn exp(self) -> Self {
+		Self {
+			red: self.red.exp(),
+			green: self.green.exp(),
+			blue: self.blue.exp(),
+		}
+	}
 }
 
 impl Add for Color {
