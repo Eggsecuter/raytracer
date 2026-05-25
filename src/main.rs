@@ -11,7 +11,7 @@ use minifb::{Key, Window, WindowOptions};
 use std::fs;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
-use scenes::cornell_box;
+use scenes::mesh_test;
 
 const WIDTH: usize = 1500;
 const HEIGHT: usize = 1000;
@@ -26,7 +26,7 @@ fn main() {
 	.unwrap();
 
 	let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
-	let scene = cornell_box::build(WIDTH, HEIGHT);
+	let scene = mesh_test::build(WIDTH, HEIGHT);
 
 	let start = Instant::now();
 	scene.render(&mut buffer);

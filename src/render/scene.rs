@@ -1,9 +1,12 @@
-use crate::entities::entity::Entity;
+use std::io;
+use std::path::Path;
+
+use crate::entities::{Entity, Mesh};
 use crate::lights::light::Light;
 use crate::materials::{DielectricMaterial, LambertMaterial, Material, MetalMaterial};
 use crate::primitives::color::Color;
 use crate::primitives::ray_hit::RayHit;
-use crate::primitives::{Ray, Vector3};
+use crate::primitives::{Quaternion, Ray, Vector3};
 use crate::render::Camera;
 
 use rayon::prelude::*;
@@ -33,6 +36,21 @@ impl Scene {
 			trace_depth: 4,
 			smooth_samples: 32,
 		}
+	}
+
+	pub fn add_obj_mesh<P: AsRef<Path>>(
+		&mut self,
+		path: P,
+		material: Material,
+		position: Vector3,
+		scale: f32,
+		rotation: Quaternion,
+	) -> io::Result<()> {
+		self.entities.push(Box::new(Mesh::from_obj(
+			path, material, position, scale, rotation,
+		)?));
+
+		Ok(())
 	}
 
 	pub fn render(&self, buffer: &mut [u32]) {

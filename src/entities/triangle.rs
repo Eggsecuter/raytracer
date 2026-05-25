@@ -1,6 +1,7 @@
 use crate::entities::Entity;
 use crate::materials::Material;
 use crate::primitives::*;
+use crate::primitives::Quaternion;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Triangle {
@@ -29,6 +30,41 @@ impl Triangle {
 			edge1,
 			edge2,
 			normal,
+		}
+	}
+
+	pub fn translated(&self, offset: Vector3) -> Self {
+		Self {
+			v0: self.v0 + offset,
+			edge1: self.edge1,
+			edge2: self.edge2,
+			normal: self.normal,
+			material: self.material,
+		}
+	}
+
+	pub fn rotated(&self, rotation: Quaternion) -> Self {
+		let v1 = self.v0 + self.edge1;
+		let v2 = self.v0 + self.edge2;
+		let new_v0 = rotation.rotate_vector(self.v0);
+		let new_v1 = rotation.rotate_vector(v1);
+		let new_v2 = rotation.rotate_vector(v2);
+		Self {
+			v0: new_v0,
+			edge1: new_v1 - new_v0,
+			edge2: new_v2 - new_v0,
+			normal: rotation.rotate_vector(self.normal),
+			material: self.material,
+		}
+	}
+
+	pub fn scaled(&self, factor: f32) -> Self {
+		Self {
+			v0: self.v0 * factor,
+			edge1: self.edge1 * factor,
+			edge2: self.edge2 * factor,
+			normal: self.normal,
+			material: self.material,
 		}
 	}
 }

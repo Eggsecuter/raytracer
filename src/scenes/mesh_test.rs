@@ -1,7 +1,7 @@
-use crate::entities::{AabbBox, Quad, Sphere};
+use crate::entities::Quad;
 use crate::lights::OmniLight;
-use crate::materials::{DielectricMaterial, LambertMaterial, Material, MetalMaterial};
-use crate::primitives::{Color, Transform, Vector3};
+use crate::materials::{DielectricMaterial, LambertMaterial, Material};
+use crate::primitives::{Color, Quaternion, Vector3};
 use crate::render::{Camera, Scene};
 
 #[allow(dead_code)]
@@ -75,39 +75,19 @@ pub fn build(width: usize, height: usize) -> Scene {
 	);
 	scene.entities.push(Box::new(right_wall));
 
-	let first_ball = Sphere::new(
-		Material::Dielectric(DielectricMaterial::SAPPHIRE),
-		Transform::new(Some(Vector3::new(-0.5, -1.0, 4.5)), None),
-		1.0,
-	);
-	scene.entities.push(Box::new(first_ball));
-	let second_ball = Sphere::new(
-		Material::Metal(MetalMaterial::SILVER),
-		Transform::new(Some(Vector3::new(1.05, -1.35, 7.2)), None),
-		0.65,
-	);
-	scene.entities.push(Box::new(second_ball));
+	scene
+		.add_obj_mesh(
+			"models/penguin/source/lowpolyPinguin.obj",
+			Material::Dielectric(DielectricMaterial::RUBY),
+			Vector3::new(0.0, -1.0, 6.0),
+			0.5,
+			Quaternion::from_euler(Vector3::new(0.0, 0.5, 0.0)),
+		)
+		.expect("failed to load penguin mesh");
 
-	let aabb_box = AabbBox::new(
-		Material::Dielectric(DielectricMaterial::GLASS),
-		Vector3 {
-			x: 1.0,
-			y: 1.0,
-			z: 5.0,
-		},
-		Vector3 {
-			x: 2.0,
-			y: -2.0,
-			z: 6.5,
-		},
-	);
-	scene.entities.push(Box::new(aabb_box));
-
-	let ceiling_light = OmniLight::new(Color::new(0.9, 0.9, 0.9), Vector3::new(0.0, 1.85, 5.8));
+	let ceiling_light =
+		OmniLight::new(Color::new(0.9, 0.9, 0.9), Vector3::new(1.0, 1.85, 3.5));
 	scene.global_lights.push(Box::new(ceiling_light));
-	let second_ceiling_light =
-		OmniLight::new(Color::new(0.9, 0.9, 0.9), Vector3::new(-1.0, 1.85, 8.0));
-	scene.global_lights.push(Box::new(second_ceiling_light));
 
 	scene
 }

@@ -7,6 +7,9 @@ pub use sphere::Sphere;
 pub mod triangle;
 pub use triangle::Triangle;
 
+pub mod mesh;
+pub use mesh::Mesh;
+
 pub mod quad;
 pub use quad::Quad;
 
