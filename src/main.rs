@@ -11,7 +11,7 @@ use minifb::{Key, Window, WindowOptions};
 use std::fs;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
-use scenes::rotating_penguin;
+use scenes::cybercity;
 
 const WIDTH: usize = 1500;
 const HEIGHT: usize = 1000;
@@ -26,7 +26,7 @@ fn main() {
 	.unwrap();
 
 	let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
-	let mut scene = rotating_penguin::build(WIDTH, HEIGHT);
+	let mut scene = cybercity::build(WIDTH, HEIGHT);
 
 	let start = Instant::now();
 	scene.render(&mut buffer);

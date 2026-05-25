@@ -69,6 +69,50 @@ impl Quaternion {
 
 		Vector3::new(result.x, result.y, result.z)
 	}
+
+	#[allow(dead_code)]
+	pub fn slerp(&self, other: Quaternion, t: f32) -> Quaternion {
+		let q1 = *self;
+		let mut q2 = other;
+
+		// compute the cosine of the angle between the two vectors.
+		let mut dot = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
+
+		// if the dot product is negative, negate one quaternion to take the shorter path.
+		if dot < 0.0 {
+			q2.x = -q2.x;
+			q2.y = -q2.y;
+			q2.z = -q2.z;
+			q2.w = -q2.w;
+			dot = -dot;
+		}
+
+		// clamp to avoid numerical errors with acos.
+		let dot = dot.clamp(-1.0, 1.0);
+
+		let theta = dot.acos();
+		let sin_theta = theta.sin();
+
+		if sin_theta < 1e-6 {
+			// if the angle is very small, use linear interpolation to avoid division by zero.
+			return Quaternion::new(
+				q1.x + t * (q2.x - q1.x),
+				q1.y + t * (q2.y - q1.y),
+				q1.z + t * (q2.z - q1.z),
+				q1.w + t * (q2.w - q1.w),
+			).normalize();
+		}
+
+		let w1 = ((1.0 - t) * theta).sin() / sin_theta;
+		let w2 = (t * theta).sin() / sin_theta;
+
+		Quaternion::new(
+			w1 * q1.x + w2 * q2.x,
+			w1 * q1.y + w2 * q2.y,
+			w1 * q1.z + w2 * q2.z,
+			w1 * q1.w + w2 * q2.w,
+		)
+	}
 }
 
 impl Display for Quaternion {

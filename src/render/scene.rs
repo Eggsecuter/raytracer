@@ -38,8 +38,8 @@ impl Scene {
 			global_lights: Vec::new(),
 			background_color: Color::BLACK,
 			trace_depth: 4,
-			smooth_samples: 32,
-			aa_samples: 256,
+			smooth_samples: 8,
+			aa_samples: 16,
 			bvh: None,
 		}
 	}
