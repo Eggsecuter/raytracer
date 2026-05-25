@@ -102,10 +102,10 @@ pub fn build(width: usize, height: usize) -> Scene {
 	scene.entities.push(Box::new(second_ball));
 
 	let aabb_box = AabbBox::new(
-		Material::Lambert(
-			LambertMaterial::from_color(Color::YELLOW)
+		Material::Dielectric(
+			DielectricMaterial::GLASS
 		),
-		Vector3 { x: 1.0, y: -1.5, z: 5.0 },
+		Vector3 { x: 1.0, y: 1.0, z: 5.0 },
 		Vector3 { x: 2.0, y: -2.0, z: 6.5 }
 	);
 	scene.entities.push(Box::new(aabb_box));
