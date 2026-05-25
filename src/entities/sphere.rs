@@ -26,10 +26,8 @@ impl Entity for Sphere {
 	}
 
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
-		// Vector from sphere center to ray origin
 		let origin_to_center = ray.origin - self.transform.position;
 
-		// Quadratic coefficients
 		let direction_len_sq = ray.direction.dot(&ray.direction);
 		let projection_len = 2.0 * ray.direction.dot(&origin_to_center);
 		let center_dist_sq = origin_to_center.dot(&origin_to_center) - self.radius * self.radius;
@@ -49,7 +47,6 @@ impl Entity for Sphere {
 		let first_distance = (-projection_len - sqrt_discriminant) / denominator;
 		let second_distance = (-projection_len + sqrt_discriminant) / denominator;
 
-		// Choose nearest valid hit in front of ray
 		let mut hit_distance = f32::INFINITY;
 
 		if first_distance > 0.0 {
@@ -64,7 +61,6 @@ impl Entity for Sphere {
 			return None;
 		}
 
-		// Compute hit point and surface normal
 		let hit_point = ray.origin + ray.direction * hit_distance;
 		let surface_normal = (hit_point - self.transform.position).normalize();
 
@@ -80,8 +76,6 @@ impl Entity for Sphere {
 			-surface_normal
 		};
 
-		// Spherical UV mapping (longitude / latitude).
-		// surface_normal is the unit outward direction from the sphere centre.
 		let uv = sphere_uv(surface_normal);
 
 		Some(RayHit::new(
@@ -95,18 +89,10 @@ impl Entity for Sphere {
 	}
 }
 
-/// Compute UV coordinates from a unit outward normal on a sphere.
-///
-/// - `u`: azimuthal angle mapped to `[0, 1]` (0 = -Z, increasing CCW viewed from above)
-/// - `v`: polar angle mapped to `[0, 1]` (0 = south pole, 1 = north pole)
-///
-/// This is the standard equirectangular / spherical parameterisation used by
-/// virtually all off-the-shelf sphere texture atlases.
 fn sphere_uv(n: Vector3) -> UV {
 	use std::f32::consts::{PI, TAU};
-	// atan2 returns values in (-π, π]; shift to [0, 1].
 	let u = (f32::atan2(-n.z, n.x) + PI) / TAU;
-	// asin returns values in [-π/2, π/2]; remap to [0, 1].
 	let v = (n.y.clamp(-1.0, 1.0).asin() + PI / 2.0) / PI;
+
 	UV::new(u, v)
 }

@@ -26,12 +26,7 @@ impl Camera {
 		}
 	}
 
-	/// Shoot a ray through pixel `(x, y)` with a sub-pixel jitter of `(dx, dy)`.
-	///
-	/// `dx` and `dy` should be in `[0, 1)` — use `0.5` for a centred ray
-	/// (no anti-aliasing) or Halton samples for multi-sample anti-aliasing.
 	pub fn get_ray(&self, x: f32, y: f32, width: f32, height: f32, dx: f32, dy: f32) -> Ray {
-		// Normalised device coordinates in [-1, 1].
 		let u = 2.0 * (x + dx) / width - 1.0;
 		let v = 1.0 - 2.0 * (y + dy) / height;
 

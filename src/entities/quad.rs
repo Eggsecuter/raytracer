@@ -8,16 +8,6 @@ pub struct Quad {
 }
 
 impl Quad {
-	/// Build a planar quad from four corners in order A → B → C → D.
-	///
-	/// UV assignment:
-	/// ```text
-	///  D(0,1) --- C(1,1)
-	///    |    \    |
-	///  A(0,0) --- B(1,0)
-	/// ```
-	/// The quad is split into triangles ABC and ACD, preserving the UV mapping
-	/// seamlessly across both halves.
 	pub fn new(
 		a: Vector3,
 		b: Vector3,

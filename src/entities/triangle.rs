@@ -10,14 +10,13 @@ pub struct Triangle {
 	pub edge1: Vector3,
 	pub edge2: Vector3,
 	pub normal: Vector3,
-	/// Per-vertex texture coordinates used for barycentric UV interpolation.
+
 	pub uv0: UV,
 	pub uv1: UV,
 	pub uv2: UV,
 }
 
 impl Triangle {
-	/// Create a triangle with default UVs: `v0→(0,0)`, `v1→(1,0)`, `v2→(0,1)`.
 	#[allow(dead_code)]
 	pub fn new(
 		v0: Vector3,
@@ -38,7 +37,6 @@ impl Triangle {
 		)
 	}
 
-	/// Create a triangle with explicit per-vertex texture coordinates.
 	pub fn with_uvs(
 		v0: Vector3,
 		v1: Vector3,
@@ -114,7 +112,6 @@ impl Entity for Triangle {
 	fn bounding_box(&self) -> Aabb {
 		let v1 = self.v0 + self.edge1;
 		let v2 = self.v0 + self.edge2;
-		// Small epsilon padding prevents degenerate flat AABBs (e.g. axis-aligned triangles).
 		let eps = Vector3::new(1e-4, 1e-4, 1e-4);
 		let min = Vector3::new(
 			self.v0.x.min(v1.x).min(v2.x),
@@ -130,7 +127,6 @@ impl Entity for Triangle {
 	}
 
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
-		// Möller–Trumbore intersection algorithm
 		let perpendicular_vector = ray.direction.cross(self.edge2);
 		let determinant = self.edge1.dot(&perpendicular_vector);
 
@@ -143,8 +139,6 @@ impl Entity for Triangle {
 
 		let inverse_determinant = 1.0 / determinant;
 		let origin_to_vertex = ray.origin - self.v0;
-
-		// Barycentric coordinate u (weight of v1)
 		let barycentric_u = origin_to_vertex.dot(&perpendicular_vector) * inverse_determinant;
 
 		if !(0.0..=1.0).contains(&barycentric_u) {
@@ -152,8 +146,6 @@ impl Entity for Triangle {
 		}
 
 		let cross_vector = origin_to_vertex.cross(self.edge1);
-
-		// Barycentric coordinate v (weight of v2)
 		let barycentric_v = ray.direction.dot(&cross_vector) * inverse_determinant;
 
 		if barycentric_v < 0.0 || barycentric_u + barycentric_v > 1.0 {
@@ -174,7 +166,6 @@ impl Entity for Triangle {
 			-self.normal
 		};
 
-		// Smoothly interpolate UVs across the triangle using barycentric coordinates.
 		let uv = UV::barycentric(self.uv0, self.uv1, self.uv2, barycentric_u, barycentric_v);
 
 		Some(RayHit::new(

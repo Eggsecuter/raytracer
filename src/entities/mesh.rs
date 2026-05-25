@@ -8,14 +8,8 @@ use crate::materials::Material;
 use crate::primitives::{Aabb, Quaternion, Ray, RayHit, Vector3};
 use crate::utilities::ObjReader;
 
-/// A triangle mesh that uses an internal BVH tree to accelerate intersection.
-///
-/// The raw triangles are retained so that the transform helpers (`translated`,
-/// `rotated`, `scaled`) can create new, correctly-transformed meshes whose BVH
-/// is rebuilt automatically.
 pub struct Mesh {
 	pub triangles: Vec<Triangle>,
-	/// BVH over the triangles; `None` only for a degenerate empty mesh.
 	bvh: Option<Box<dyn Entity>>,
 	aabb: Aabb,
 }
@@ -30,7 +24,6 @@ impl Mesh {
 			};
 		}
 
-		// Compute overall AABB and build the BVH in one pass.
 		let mut aabb = Aabb::empty();
 		let entities: Vec<Box<dyn Entity>> = triangles
 			.iter()

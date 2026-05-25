@@ -23,9 +23,6 @@ pub struct Scene {
 	pub background_color: Color,
 	pub trace_depth: i32,
 	pub smooth_samples: i32,
-	/// Number of Halton-sampled rays per pixel used for anti-aliasing.
-	/// `1` fires a single centred ray (no AA). Values ≥ 2 average that many
-	/// quasi-random sub-pixel samples via the base-2/base-3 Halton sequence.
 	pub aa_samples: u32,
 
 	bvh: Option<Box<dyn Entity>>,
@@ -62,12 +59,6 @@ impl Scene {
 		Ok(())
 	}
 
-	/// Build the scene-level BVH from all entities added so far.
-	///
-	/// This is called automatically at the start of [`Scene::render`], so
-	/// explicit calls are only needed if you want to control the timing.
-	/// After this call `self.entities` is empty; all intersection queries
-	/// are routed through the BVH instead.
 	pub fn build_bvh(&mut self) {
 		if !self.entities.is_empty() {
 			let entities = std::mem::take(&mut self.entities);

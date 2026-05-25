@@ -11,7 +11,6 @@ pub struct RayHit {
 	pub normal: Vector3,
 	pub material: Material,
 	pub front_face: bool,
-	/// Texture coordinates at the hit point.
 	pub uv: UV,
 }
 
