@@ -1,8 +1,8 @@
 use crate::entities::Entity;
 use crate::materials::Material;
-use crate::primitives::{Aabb, Ray, RayHit, Transform, Vector3};
+use crate::primitives::{Aabb, Ray, RayHit, Transform, Vector3, UV};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Sphere {
 	pub material: Material,
 	pub transform: Transform,
@@ -80,12 +80,33 @@ impl Entity for Sphere {
 			-surface_normal
 		};
 
+		// Spherical UV mapping (longitude / latitude).
+		// surface_normal is the unit outward direction from the sphere centre.
+		let uv = sphere_uv(surface_normal);
+
 		Some(RayHit::new(
 			hit_distance,
 			hit_point,
 			normal,
-			self.material,
+			self.material.clone(),
 			front_face,
+			uv,
 		))
 	}
+}
+
+/// Compute UV coordinates from a unit outward normal on a sphere.
+///
+/// - `u`: azimuthal angle mapped to `[0, 1]` (0 = -Z, increasing CCW viewed from above)
+/// - `v`: polar angle mapped to `[0, 1]` (0 = south pole, 1 = north pole)
+///
+/// This is the standard equirectangular / spherical parameterisation used by
+/// virtually all off-the-shelf sphere texture atlases.
+fn sphere_uv(n: Vector3) -> UV {
+	use std::f32::consts::{PI, TAU};
+	// atan2 returns values in (-π, π]; shift to [0, 1].
+	let u = (f32::atan2(-n.z, n.x) + PI) / TAU;
+	// asin returns values in [-π/2, π/2]; remap to [0, 1].
+	let v = (n.y.clamp(-1.0, 1.0).asin() + PI / 2.0) / PI;
+	UV::new(u, v)
 }

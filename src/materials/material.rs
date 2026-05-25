@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter, Result};
 
 use crate::materials::{DielectricMaterial, LambertMaterial, MetalMaterial};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub enum Material {
 	Lambert(LambertMaterial),

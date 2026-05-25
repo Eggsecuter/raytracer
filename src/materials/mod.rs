@@ -9,3 +9,7 @@ pub use metal::MetalMaterial;
 
 pub mod dielectric;
 pub use dielectric::DielectricMaterial;
+
+pub mod texture;
+#[allow(unused_imports)]
+pub use texture::{Albedo, ImageTexture};

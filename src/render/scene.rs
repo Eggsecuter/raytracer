@@ -8,6 +8,7 @@ use crate::primitives::color::Color;
 use crate::primitives::ray_hit::RayHit;
 use crate::primitives::{Quaternion, Ray, Vector3};
 use crate::render::Camera;
+use crate::utilities::halton_2d;
 
 use rayon::prelude::*;
 
@@ -16,18 +17,18 @@ pub struct Scene {
 	pub width: usize,
 	pub height: usize,
 
-	/// Entities added before [`Scene::render`] is called.
 	pub entities: Vec<Box<dyn Entity>>,
 	pub global_lights: Vec<Box<dyn Light>>,
 
-	/// Scene-level BVH, built from `entities` on the first render call.
-	/// After construction `entities` is emptied and all intersection goes
-	/// through this tree.
-	bvh: Option<Box<dyn Entity>>,
+	pub background_color: Color,
+	pub trace_depth: i32,
+	pub smooth_samples: i32,
+	/// Number of Halton-sampled rays per pixel used for anti-aliasing.
+	/// `1` fires a single centred ray (no AA). Values ≥ 2 average that many
+	/// quasi-random sub-pixel samples via the base-2/base-3 Halton sequence.
+	pub aa_samples: u32,
 
-	background_color: Color,
-	trace_depth: i32,
-	smooth_samples: i32,
+	bvh: Option<Box<dyn Entity>>,
 }
 
 impl Scene {
@@ -38,10 +39,11 @@ impl Scene {
 			height,
 			entities: Vec::new(),
 			global_lights: Vec::new(),
-			bvh: None,
 			background_color: Color::BLACK,
 			trace_depth: 4,
 			smooth_samples: 32,
+			aa_samples: 256,
+			bvh: None,
 		}
 	}
 
@@ -84,13 +86,37 @@ impl Scene {
 			.enumerate()
 			.for_each(|(y, row)| {
 				for (x, pixel) in row.iter_mut().enumerate().take(scene.width) {
-					let ray = scene.camera.get_ray(
-						x as f32,
-						y as f32,
-						scene.width as f32,
-						scene.height as f32,
-					);
-					let color = scene.trace_ray(ray, scene.trace_depth).clamped();
+					let color = if scene.aa_samples <= 1 {
+						// Single centred ray — no anti-aliasing overhead.
+						let ray = scene.camera.get_ray(
+							x as f32,
+							y as f32,
+							scene.width as f32,
+							scene.height as f32,
+							0.5,
+							0.5,
+						);
+						scene.trace_ray(ray, scene.trace_depth)
+					} else {
+						// Accumulate N Halton-jittered rays and average them.
+						// Halton indices are 1-based; index 0 always returns 0
+						// which would bias all samples to the pixel corner.
+						let mut accumulated = Color::BLACK;
+						for s in 1..=scene.aa_samples {
+							let (dx, dy) = halton_2d(s);
+							let ray = scene.camera.get_ray(
+								x as f32,
+								y as f32,
+								scene.width as f32,
+								scene.height as f32,
+								dx,
+								dy,
+							);
+							accumulated += scene.trace_ray(ray, scene.trace_depth);
+						}
+						accumulated * (1.0 / scene.aa_samples as f32)
+					}
+					.clamped();
 
 					let r = (color.red * 255.0) as u32;
 					let g = (color.green * 255.0) as u32;
@@ -111,7 +137,9 @@ impl Scene {
 			None => return self.background_color,
 		};
 
-		match hit.material {
+		// Clone the material before matching so `hit` is not partially moved
+		// and can still be forwarded to the shading functions intact.
+		match hit.material.clone() {
 			Material::Lambert(material) => return self.shade(hit, material),
 
 			Material::Metal(material) => {
@@ -161,12 +189,13 @@ impl Scene {
 
 		diffuse_color *= in_light_count as f32 / self.global_lights.len().max(1) as f32;
 
-		material.albedo * diffuse_color + material.ambient
+		// Sample albedo from the hit UV — flat colours ignore it, textures use it.
+		material.albedo_at(hit.uv) * diffuse_color + material.ambient
 	}
 
 	fn reflect(&self, ray: Ray, hit: RayHit, material: MetalMaterial, depth: i32) -> Color {
-		let ideal_reflection = self.get_reflected_direction(ray, hit);
-		let reflection_point = self.get_offset_point(hit);
+		let ideal_reflection = self.get_reflected_direction(ray, &hit);
+		let reflection_point = self.get_offset_point(&hit);
 
 		let roughness = 1.0 - material.smoothness;
 		let mut accumulated = Color::BLACK;
@@ -202,8 +231,8 @@ impl Scene {
 		};
 
 		let reflected_ray = Ray::new(
-			self.get_offset_point(hit),
-			self.get_reflected_direction(ray, hit),
+			self.get_offset_point(&hit),
+			self.get_reflected_direction(ray, &hit),
 			hit.front_face,
 		);
 		let reflected_color = self.trace_ray(reflected_ray, depth - 1);
@@ -220,7 +249,7 @@ impl Scene {
 		let refracted_direction =
 			ray.direction.normalize() * eta + hit.normal.normalize() * (eta * cos_theta - k.sqrt());
 		let refracted_ray = Ray::new(
-			self.get_negative_offset_point(hit),
+			self.get_negative_offset_point(&hit),
 			refracted_direction,
 			!hit.front_face,
 		);
@@ -235,15 +264,15 @@ impl Scene {
 		reflected_color * fresnel_factor + refracted_color * (1.0 - fresnel_factor)
 	}
 
-	fn get_offset_point(&self, hit: RayHit) -> Vector3 {
+	fn get_offset_point(&self, hit: &RayHit) -> Vector3 {
 		hit.point + hit.normal * 1e-3
 	}
 
-	fn get_negative_offset_point(&self, hit: RayHit) -> Vector3 {
+	fn get_negative_offset_point(&self, hit: &RayHit) -> Vector3 {
 		hit.point - hit.normal * 1e-3
 	}
 
-	fn get_reflected_direction(&self, ray: Ray, hit: RayHit) -> Vector3 {
+	fn get_reflected_direction(&self, ray: Ray, hit: &RayHit) -> Vector3 {
 		ray.direction - hit.normal * 2.0 * ray.direction.dot(&hit.normal)
 	}
 

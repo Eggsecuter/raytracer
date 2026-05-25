@@ -18,3 +18,6 @@ pub use ray::Ray;
 
 pub mod ray_hit;
 pub use ray_hit::RayHit;
+
+pub mod uv;
+pub use uv::UV;

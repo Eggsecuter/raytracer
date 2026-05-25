@@ -34,9 +34,9 @@ impl Mesh {
 		let mut aabb = Aabb::empty();
 		let entities: Vec<Box<dyn Entity>> = triangles
 			.iter()
-			.map(|&t| {
+			.map(|t| {
 				aabb = Aabb::surrounding(aabb, t.bounding_box());
-				Box::new(t) as Box<dyn Entity>
+				Box::new(t.clone()) as Box<dyn Entity>
 			})
 			.collect();
 

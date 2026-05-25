@@ -26,12 +26,14 @@ impl Camera {
 		}
 	}
 
-	pub fn get_ray(&self, x: f32, y: f32, width: f32, height: f32) -> Ray {
-		let pixel_center_offset = 0.5;
-
-		// calculate normalized coordinates
-		let u = 2.0 * (x + pixel_center_offset) / width - 1.0;
-		let v = 1.0 - 2.0 * (y + pixel_center_offset) / height;
+	/// Shoot a ray through pixel `(x, y)` with a sub-pixel jitter of `(dx, dy)`.
+	///
+	/// `dx` and `dy` should be in `[0, 1)` — use `0.5` for a centred ray
+	/// (no anti-aliasing) or Halton samples for multi-sample anti-aliasing.
+	pub fn get_ray(&self, x: f32, y: f32, width: f32, height: f32, dx: f32, dy: f32) -> Ray {
+		// Normalised device coordinates in [-1, 1].
+		let u = 2.0 * (x + dx) / width - 1.0;
+		let v = 1.0 - 2.0 * (y + dy) / height;
 
 		let direction = self.transform.rotation.rotate_vector(Vector3::FORWARD)
 			+ Vector3::RIGHT * u * self.half_width

@@ -1,22 +1,51 @@
 use crate::entities::Entity;
 use crate::materials::Material;
 use crate::primitives::*;
-use crate::primitives::{Aabb, Quaternion};
+use crate::primitives::{Aabb, Quaternion, UV};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Triangle {
 	pub material: Material,
 	pub v0: Vector3,
 	pub edge1: Vector3,
 	pub edge2: Vector3,
 	pub normal: Vector3,
+	/// Per-vertex texture coordinates used for barycentric UV interpolation.
+	pub uv0: UV,
+	pub uv1: UV,
+	pub uv2: UV,
 }
 
 impl Triangle {
+	/// Create a triangle with default UVs: `v0→(0,0)`, `v1→(1,0)`, `v2→(0,1)`.
+	#[allow(dead_code)]
 	pub fn new(
 		v0: Vector3,
 		v1: Vector3,
 		v2: Vector3,
+		material: Material,
+		normal: Option<Vector3>,
+	) -> Self {
+		Self::with_uvs(
+			v0,
+			v1,
+			v2,
+			UV::new(0.0, 0.0),
+			UV::new(1.0, 0.0),
+			UV::new(0.0, 1.0),
+			material,
+			normal,
+		)
+	}
+
+	/// Create a triangle with explicit per-vertex texture coordinates.
+	pub fn with_uvs(
+		v0: Vector3,
+		v1: Vector3,
+		v2: Vector3,
+		uv0: UV,
+		uv1: UV,
+		uv2: UV,
 		material: Material,
 		normal: Option<Vector3>,
 	) -> Self {
@@ -30,6 +59,9 @@ impl Triangle {
 			edge1,
 			edge2,
 			normal,
+			uv0,
+			uv1,
+			uv2,
 		}
 	}
 
@@ -39,7 +71,10 @@ impl Triangle {
 			edge1: self.edge1,
 			edge2: self.edge2,
 			normal: self.normal,
-			material: self.material,
+			material: self.material.clone(),
+			uv0: self.uv0,
+			uv1: self.uv1,
+			uv2: self.uv2,
 		}
 	}
 
@@ -54,7 +89,10 @@ impl Triangle {
 			edge1: new_v1 - new_v0,
 			edge2: new_v2 - new_v0,
 			normal: rotation.rotate_vector(self.normal),
-			material: self.material,
+			material: self.material.clone(),
+			uv0: self.uv0,
+			uv1: self.uv1,
+			uv2: self.uv2,
 		}
 	}
 
@@ -64,7 +102,10 @@ impl Triangle {
 			edge1: self.edge1 * factor,
 			edge2: self.edge2 * factor,
 			normal: self.normal,
-			material: self.material,
+			material: self.material.clone(),
+			uv0: self.uv0,
+			uv1: self.uv1,
+			uv2: self.uv2,
 		}
 	}
 }
@@ -89,6 +130,7 @@ impl Entity for Triangle {
 	}
 
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
+		// Möller–Trumbore intersection algorithm
 		let perpendicular_vector = ray.direction.cross(self.edge2);
 		let determinant = self.edge1.dot(&perpendicular_vector);
 
@@ -101,6 +143,8 @@ impl Entity for Triangle {
 
 		let inverse_determinant = 1.0 / determinant;
 		let origin_to_vertex = ray.origin - self.v0;
+
+		// Barycentric coordinate u (weight of v1)
 		let barycentric_u = origin_to_vertex.dot(&perpendicular_vector) * inverse_determinant;
 
 		if !(0.0..=1.0).contains(&barycentric_u) {
@@ -108,6 +152,8 @@ impl Entity for Triangle {
 		}
 
 		let cross_vector = origin_to_vertex.cross(self.edge1);
+
+		// Barycentric coordinate v (weight of v2)
 		let barycentric_v = ray.direction.dot(&cross_vector) * inverse_determinant;
 
 		if barycentric_v < 0.0 || barycentric_u + barycentric_v > 1.0 {
@@ -128,12 +174,16 @@ impl Entity for Triangle {
 			-self.normal
 		};
 
+		// Smoothly interpolate UVs across the triangle using barycentric coordinates.
+		let uv = UV::barycentric(self.uv0, self.uv1, self.uv2, barycentric_u, barycentric_v);
+
 		Some(RayHit::new(
 			distance_along_ray,
 			intersection_point,
 			normal,
-			self.material,
+			self.material.clone(),
 			ray.check_front,
+			uv,
 		))
 	}
 }
