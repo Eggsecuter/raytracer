@@ -17,6 +17,12 @@ struct FaceVertex {
 	normal_index: Option<usize>,
 }
 
+#[derive(Debug, Clone, Copy)]
+struct TriangleIndices {
+	vertex_indices: [usize; 3],
+	uv_indices: [Option<usize>; 3],
+}
+
 impl ObjReader {
 	pub fn read_mesh<P: AsRef<Path>>(path: P, material: Material) -> io::Result<Mesh> {
 		let file = File::open(path)?;
@@ -26,6 +32,7 @@ impl ObjReader {
 		let mut tex_coords: Vec<UV> = Vec::new();
 		let mut normals: Vec<Vector3> = Vec::new();
 		let mut triangles: Vec<Triangle> = Vec::new();
+		let mut triangle_indices: Vec<TriangleIndices> = Vec::new();
 
 		for (line_index, line) in reader.lines().enumerate() {
 			let line = line?;
@@ -70,27 +77,87 @@ impl ObjReader {
 						let b = face_vertices[i];
 						let c = face_vertices[i + 1];
 
-						let geo_normal = face_normal([a, b, c], &normals);
-
 						// Per-vertex UVs — fall back to sensible defaults if the OBJ
 						// does not contain texture coordinates.
 						let uv_a = resolve_uv(a.uv_index, &tex_coords);
 						let uv_b = resolve_uv(b.uv_index, &tex_coords);
 						let uv_c = resolve_uv(c.uv_index, &tex_coords);
 
-						triangles.push(Triangle::with_uvs(
-							vertices[a.vertex_index],
-							vertices[b.vertex_index],
-							vertices[c.vertex_index],
-							uv_a,
-							uv_b,
-							uv_c,
-							material.clone(),
-							geo_normal,
-						));
+						// Store triangle indices for potential normal generation later
+						triangle_indices.push(TriangleIndices {
+							vertex_indices: [a.vertex_index, b.vertex_index, c.vertex_index],
+							uv_indices: [a.uv_index, b.uv_index, c.uv_index],
+						});
+
+						// Check if all vertices have normals for smooth shading
+						let triangle = if let (Some(na), Some(nb), Some(nc)) =
+							(a.normal_index, b.normal_index, c.normal_index)
+						{
+							// Use per-vertex normals for smooth shading
+							Triangle::with_normals(
+								vertices[a.vertex_index],
+								vertices[b.vertex_index],
+								vertices[c.vertex_index],
+								uv_a,
+								uv_b,
+								uv_c,
+								material.clone(),
+								normals[na],
+								normals[nb],
+								normals[nc],
+							)
+						} else {
+							// Fall back to geometric normal (flat shading)
+							let v0 = vertices[a.vertex_index];
+							let v1 = vertices[b.vertex_index];
+							let v2 = vertices[c.vertex_index];
+							let geo_normal = (v1 - v0).cross(v2 - v0).normalize();
+							Triangle::with_uvs(
+								v0,
+								v1,
+								v2,
+								uv_a,
+								uv_b,
+								uv_c,
+								material.clone(),
+								Some(geo_normal),
+							)
+						};
+
+						triangles.push(triangle);
 					}
 				}
 				_ => {}
+			}
+		}
+
+		// If no normals were provided in the OBJ file, generate them
+		if normals.is_empty() && !vertices.is_empty() && !triangle_indices.is_empty() {
+			normals = compute_vertex_normals(&vertices, &triangle_indices);
+			
+			// Rebuild all triangles with the computed normals
+			triangles.clear();
+			for tri_idx in &triangle_indices {
+				let v0_idx = tri_idx.vertex_indices[0];
+				let v1_idx = tri_idx.vertex_indices[1];
+				let v2_idx = tri_idx.vertex_indices[2];
+
+				let uv_a = resolve_uv(tri_idx.uv_indices[0], &tex_coords);
+				let uv_b = resolve_uv(tri_idx.uv_indices[1], &tex_coords);
+				let uv_c = resolve_uv(tri_idx.uv_indices[2], &tex_coords);
+
+				triangles.push(Triangle::with_normals(
+					vertices[v0_idx],
+					vertices[v1_idx],
+					vertices[v2_idx],
+					uv_a,
+					uv_b,
+					uv_c,
+					material.clone(),
+					normals[v0_idx],
+					normals[v1_idx],
+					normals[v2_idx],
+				));
 			}
 		}
 
@@ -101,6 +168,47 @@ impl ObjReader {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/// Compute vertex normals from triangle geometry when the OBJ file doesn't provide them.
+/// Uses area-weighted face normals accumulated at each vertex for smooth shading.
+fn compute_vertex_normals(
+	vertices: &[Vector3],
+	triangle_indices: &[TriangleIndices],
+) -> Vec<Vector3> {
+	// Initialize all vertex normals to zero
+	let mut vertex_normals = vec![Vector3::ZERO; vertices.len()];
+
+	// Accumulate face normals at each vertex (area-weighted)
+	for tri_idx in triangle_indices {
+		let v0_idx = tri_idx.vertex_indices[0];
+		let v1_idx = tri_idx.vertex_indices[1];
+		let v2_idx = tri_idx.vertex_indices[2];
+
+		let v0 = vertices[v0_idx];
+		let v1 = vertices[v1_idx];
+		let v2 = vertices[v2_idx];
+
+		let edge1 = v1 - v0;
+		let edge2 = v2 - v0;
+
+		// Cross product gives area-weighted normal
+		// (magnitude is proportional to triangle area)
+		let face_normal = edge1.cross(edge2);
+
+		// Accumulate to each vertex
+		vertex_normals[v0_idx] += face_normal;
+		vertex_normals[v1_idx] += face_normal;
+		vertex_normals[v2_idx] += face_normal;
+	}
+
+	// Normalize all vertex normals
+	for normal in &mut vertex_normals {
+		*normal = normal.normalize();
+	}
+
+	vertex_normals
+}
+
 
 fn parse_vec3<'a>(
 	mut parts: impl Iterator<Item = &'a str>,
@@ -202,16 +310,6 @@ fn parse_obj_index(
 	}
 
 	Ok(resolved as usize)
-}
-
-/// Average the vertex normals to get a smooth face normal; returns `None` when
-/// any of the three vertices lack a normal index (geometry normal is used instead).
-fn face_normal(face_vertices: [FaceVertex; 3], normals: &[Vector3]) -> Option<Vector3> {
-	let mut normal = Vector3::ZERO;
-	for fv in face_vertices {
-		normal += normals[fv.normal_index?];
-	}
-	Some(normal.normalize())
 }
 
 /// Return the UV for this face-vertex, or fall back to a default when the OBJ

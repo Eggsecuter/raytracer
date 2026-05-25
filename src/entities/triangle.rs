@@ -9,7 +9,9 @@ pub struct Triangle {
 	pub v0: Vector3,
 	pub edge1: Vector3,
 	pub edge2: Vector3,
-	pub normal: Vector3,
+	pub normal0: Vector3,
+	pub normal1: Vector3,
+	pub normal2: Vector3,
 
 	pub uv0: UV,
 	pub uv1: UV,
@@ -51,12 +53,45 @@ impl Triangle {
 		let edge2 = v2 - v0;
 		let normal = normal.unwrap_or_else(|| edge1.cross(edge2)).normalize();
 
+		// use the same normal for all vertices (flat shading)
 		Self {
 			material,
 			v0,
 			edge1,
 			edge2,
-			normal,
+			normal0: normal,
+			normal1: normal,
+			normal2: normal,
+			uv0,
+			uv1,
+			uv2,
+		}
+	}
+
+	/// creates a triangle with per-vertex normals for smooth shading
+	pub fn with_normals(
+		v0: Vector3,
+		v1: Vector3,
+		v2: Vector3,
+		uv0: UV,
+		uv1: UV,
+		uv2: UV,
+		material: Material,
+		normal0: Vector3,
+		normal1: Vector3,
+		normal2: Vector3,
+	) -> Self {
+		let edge1 = v1 - v0;
+		let edge2 = v2 - v0;
+
+		Self {
+			material,
+			v0,
+			edge1,
+			edge2,
+			normal0: normal0.normalize(),
+			normal1: normal1.normalize(),
+			normal2: normal2.normalize(),
 			uv0,
 			uv1,
 			uv2,
@@ -68,7 +103,9 @@ impl Triangle {
 			v0: self.v0 + offset,
 			edge1: self.edge1,
 			edge2: self.edge2,
-			normal: self.normal,
+			normal0: self.normal0,
+			normal1: self.normal1,
+			normal2: self.normal2,
 			material: self.material.clone(),
 			uv0: self.uv0,
 			uv1: self.uv1,
@@ -86,7 +123,9 @@ impl Triangle {
 			v0: new_v0,
 			edge1: new_v1 - new_v0,
 			edge2: new_v2 - new_v0,
-			normal: rotation.rotate_vector(self.normal),
+			normal0: rotation.rotate_vector(self.normal0),
+			normal1: rotation.rotate_vector(self.normal1),
+			normal2: rotation.rotate_vector(self.normal2),
 			material: self.material.clone(),
 			uv0: self.uv0,
 			uv1: self.uv1,
@@ -99,7 +138,9 @@ impl Triangle {
 			v0: self.v0 * factor,
 			edge1: self.edge1 * factor,
 			edge2: self.edge2 * factor,
-			normal: self.normal,
+			normal0: self.normal0,
+			normal1: self.normal1,
+			normal2: self.normal2,
 			material: self.material.clone(),
 			uv0: self.uv0,
 			uv1: self.uv1,
@@ -160,10 +201,17 @@ impl Entity for Triangle {
 
 		let intersection_point = ray.origin + ray.direction * distance_along_ray;
 
+		// interpolate the normal using barycentric coordinates
+		let barycentric_w = 1.0 - barycentric_u - barycentric_v;
+		let interpolated_normal = (self.normal0 * barycentric_w
+			+ self.normal1 * barycentric_u
+			+ self.normal2 * barycentric_v)
+			.normalize();
+
 		let normal = if ray.check_front {
-			self.normal
+			interpolated_normal
 		} else {
-			-self.normal
+			-interpolated_normal
 		};
 
 		let uv = UV::barycentric(self.uv0, self.uv1, self.uv2, barycentric_u, barycentric_v);
