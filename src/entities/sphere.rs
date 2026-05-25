@@ -1,6 +1,6 @@
 use crate::entities::Entity;
 use crate::materials::Material;
-use crate::primitives::{Ray, RayHit, Transform};
+use crate::primitives::{Aabb, Ray, RayHit, Transform, Vector3};
 
 #[derive(Debug, PartialEq)]
 pub struct Sphere {
@@ -20,6 +20,11 @@ impl Sphere {
 }
 
 impl Entity for Sphere {
+	fn bounding_box(&self) -> Aabb {
+		let r = Vector3::new(self.radius, self.radius, self.radius);
+		Aabb::new(self.transform.position - r, self.transform.position + r)
+	}
+
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
 		// Vector from sphere center to ray origin
 		let origin_to_center = ray.origin - self.transform.position;

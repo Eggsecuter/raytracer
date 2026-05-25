@@ -1,7 +1,7 @@
 use std::io;
 use std::path::Path;
 
-use crate::entities::{Entity, Mesh};
+use crate::entities::{BvhNode, Entity, Mesh};
 use crate::lights::light::Light;
 use crate::materials::{DielectricMaterial, LambertMaterial, Material, MetalMaterial};
 use crate::primitives::color::Color;
@@ -16,8 +16,14 @@ pub struct Scene {
 	pub width: usize,
 	pub height: usize,
 
+	/// Entities added before [`Scene::render`] is called.
 	pub entities: Vec<Box<dyn Entity>>,
 	pub global_lights: Vec<Box<dyn Light>>,
+
+	/// Scene-level BVH, built from `entities` on the first render call.
+	/// After construction `entities` is emptied and all intersection goes
+	/// through this tree.
+	bvh: Option<Box<dyn Entity>>,
 
 	background_color: Color,
 	trace_depth: i32,
@@ -32,6 +38,7 @@ impl Scene {
 			height,
 			entities: Vec::new(),
 			global_lights: Vec::new(),
+			bvh: None,
 			background_color: Color::BLACK,
 			trace_depth: 4,
 			smooth_samples: 32,
@@ -53,19 +60,37 @@ impl Scene {
 		Ok(())
 	}
 
-	pub fn render(&self, buffer: &mut [u32]) {
+	/// Build the scene-level BVH from all entities added so far.
+	///
+	/// This is called automatically at the start of [`Scene::render`], so
+	/// explicit calls are only needed if you want to control the timing.
+	/// After this call `self.entities` is empty; all intersection queries
+	/// are routed through the BVH instead.
+	pub fn build_bvh(&mut self) {
+		if !self.entities.is_empty() {
+			let entities = std::mem::take(&mut self.entities);
+			self.bvh = Some(BvhNode::build(entities));
+		}
+	}
+
+	pub fn render(&mut self, buffer: &mut [u32]) {
+		self.build_bvh();
+
+		// Reborrow as &Scene so the closure can be sent across threads.
+		let scene: &Scene = self;
+
 		buffer
-			.par_chunks_mut(self.width)
+			.par_chunks_mut(scene.width)
 			.enumerate()
 			.for_each(|(y, row)| {
-				for (x, pixel) in row.iter_mut().enumerate().take(self.width) {
-					let ray = self.camera.get_ray(
+				for (x, pixel) in row.iter_mut().enumerate().take(scene.width) {
+					let ray = scene.camera.get_ray(
 						x as f32,
 						y as f32,
-						self.width as f32,
-						self.height as f32,
+						scene.width as f32,
+						scene.height as f32,
 					);
-					let color = self.trace_ray(ray, self.trace_depth).clamped();
+					let color = scene.trace_ray(ray, scene.trace_depth).clamped();
 
 					let r = (color.red * 255.0) as u32;
 					let g = (color.green * 255.0) as u32;
@@ -98,9 +123,12 @@ impl Scene {
 	}
 
 	fn intersect(&self, ray: Ray) -> Option<RayHit> {
-		// find the closest intersection
-		let mut closest_hit: Option<RayHit> = None;
+		if let Some(bvh) = &self.bvh {
+			return bvh.intersect(&ray);
+		}
 
+		// Fallback linear search when the BVH has not been built yet.
+		let mut closest_hit: Option<RayHit> = None;
 		for entity in &self.entities {
 			if let Some(hit) = entity.intersect(&ray)
 				&& (closest_hit.is_none() || hit.distance <= closest_hit.as_ref().unwrap().distance)
@@ -108,12 +136,10 @@ impl Scene {
 				closest_hit = Some(hit);
 			}
 		}
-
-		return closest_hit;
+		closest_hit
 	}
 
 	fn shade(&self, hit: RayHit, material: LambertMaterial) -> Color {
-		// calculate diffuse color
 		let mut diffuse_color = Color::BLACK;
 		let mut in_light_count = 0;
 
@@ -122,17 +148,10 @@ impl Scene {
 			let distance_to_light = to_light.length();
 			let shadow_ray = Ray::new(hit.point + hit.normal * 1e-4, to_light.normalize(), true);
 
-			// check if point is in shadow
-			let mut in_light = true;
-
-			for other_entity in &self.entities {
-				if let Some(hit) = other_entity.intersect(&shadow_ray)
-					&& hit.distance < distance_to_light
-				{
-					in_light = false;
-					break;
-				}
-			}
+			// A hit closer than the light means this point is in shadow.
+			let in_light = self
+				.intersect(shadow_ray)
+				.map_or(true, |shadow_hit| shadow_hit.distance >= distance_to_light);
 
 			if in_light {
 				diffuse_color += light.calculate_color(&hit);
@@ -140,10 +159,9 @@ impl Scene {
 			}
 		}
 
-		// final shadow factor
 		diffuse_color *= in_light_count as f32 / self.global_lights.len().max(1) as f32;
 
-		return material.albedo * diffuse_color + material.ambient;
+		material.albedo * diffuse_color + material.ambient
 	}
 
 	fn reflect(&self, ray: Ray, hit: RayHit, material: MetalMaterial, depth: i32) -> Color {
@@ -154,7 +172,6 @@ impl Scene {
 		let mut accumulated = Color::BLACK;
 
 		for _ in 0..self.smooth_samples {
-			// generate random perturbation in unit sphere
 			let mut random_dir;
 			loop {
 				random_dir = Vector3::new(
@@ -168,7 +185,6 @@ impl Scene {
 				}
 			}
 
-			// blend reflection with noise
 			let direction = (ideal_reflection + random_dir * roughness).normalize();
 
 			let reflected_ray = Ray::new(reflection_point, direction, true);
@@ -197,7 +213,6 @@ impl Scene {
 
 		let k = 1.0 - eta * eta * (1.0 - cos_theta * cos_theta);
 
-		// total reflection
 		if k < 0.0 {
 			return reflected_color;
 		}
@@ -217,7 +232,7 @@ impl Scene {
 
 		let fresnel_factor = self.fresnel_schlick(eta1, eta2, cos_theta);
 
-		return reflected_color * fresnel_factor + refracted_color * (1.0 - fresnel_factor);
+		reflected_color * fresnel_factor + refracted_color * (1.0 - fresnel_factor)
 	}
 
 	fn get_offset_point(&self, hit: RayHit) -> Vector3 {
@@ -234,7 +249,6 @@ impl Scene {
 
 	fn fresnel_schlick(&self, eta1: f32, eta2: f32, cos_theta: f32) -> f32 {
 		let r0 = ((eta1 - eta2) / (eta1 + eta2)).powi(2);
-
 		r0 + (1.0 - r0) * (1.0 - cos_theta).powi(5)
 	}
 }

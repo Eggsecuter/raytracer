@@ -1,6 +1,6 @@
 use crate::entities::{Entity, Triangle};
 use crate::materials::Material;
-use crate::primitives::{Ray, RayHit, Vector3};
+use crate::primitives::{Aabb, Ray, RayHit, Vector3};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Quad {
@@ -26,6 +26,13 @@ impl Quad {
 }
 
 impl Entity for Quad {
+	fn bounding_box(&self) -> Aabb {
+		Aabb::surrounding(
+			self.triangles[0].bounding_box(),
+			self.triangles[1].bounding_box(),
+		)
+	}
+
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
 		let mut closest_hit = None;
 

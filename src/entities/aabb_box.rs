@@ -1,10 +1,13 @@
 use crate::entities::{Entity, Triangle};
 use crate::materials::Material;
-use crate::primitives::{Ray, RayHit, Vector3};
+use crate::primitives::{Aabb, Ray, RayHit, Vector3};
 
 #[derive(Debug, Clone, Copy)]
 pub struct AabbBox {
 	pub triangles: [Triangle; 12],
+	/// The two corner points as supplied to [`AabbBox::new`].
+	pub min: Vector3,
+	pub max: Vector3,
 }
 
 impl AabbBox {
@@ -32,6 +35,8 @@ impl AabbBox {
 		let m = material;
 
 		Self {
+			min,
+			max,
 			triangles: [
 				// -X
 				Triangle::new(v000, v010, v011, m, None),
@@ -57,6 +62,22 @@ impl AabbBox {
 }
 
 impl Entity for AabbBox {
+	fn bounding_box(&self) -> Aabb {
+		// Use the actual geometric min/max regardless of the order the corners were supplied.
+		Aabb::new(
+			Vector3::new(
+				self.min.x.min(self.max.x),
+				self.min.y.min(self.max.y),
+				self.min.z.min(self.max.z),
+			),
+			Vector3::new(
+				self.min.x.max(self.max.x),
+				self.min.y.max(self.max.y),
+				self.min.z.max(self.max.z),
+			),
+		)
+	}
+
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
 		let mut closest_hit = None;
 

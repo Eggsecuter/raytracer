@@ -1,7 +1,7 @@
 use crate::entities::Entity;
 use crate::materials::Material;
 use crate::primitives::*;
-use crate::primitives::Quaternion;
+use crate::primitives::{Aabb, Quaternion};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Triangle {
@@ -70,6 +70,24 @@ impl Triangle {
 }
 
 impl Entity for Triangle {
+	fn bounding_box(&self) -> Aabb {
+		let v1 = self.v0 + self.edge1;
+		let v2 = self.v0 + self.edge2;
+		// Small epsilon padding prevents degenerate flat AABBs (e.g. axis-aligned triangles).
+		let eps = Vector3::new(1e-4, 1e-4, 1e-4);
+		let min = Vector3::new(
+			self.v0.x.min(v1.x).min(v2.x),
+			self.v0.y.min(v1.y).min(v2.y),
+			self.v0.z.min(v1.z).min(v2.z),
+		) - eps;
+		let max = Vector3::new(
+			self.v0.x.max(v1.x).max(v2.x),
+			self.v0.y.max(v1.y).max(v2.y),
+			self.v0.z.max(v1.z).max(v2.z),
+		) + eps;
+		Aabb::new(min, max)
+	}
+
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
 		let perpendicular_vector = ray.direction.cross(self.edge2);
 		let determinant = self.edge1.dot(&perpendicular_vector);

@@ -26,7 +26,7 @@ fn main() {
 	.unwrap();
 
 	let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
-	let scene = mesh_test::build(WIDTH, HEIGHT);
+	let mut scene = mesh_test::build(WIDTH, HEIGHT);
 
 	let start = Instant::now();
 	scene.render(&mut buffer);

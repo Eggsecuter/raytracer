@@ -1,3 +1,6 @@
+pub mod aabb;
+pub use aabb::Aabb;
+
 pub mod color;
 pub use color::Color;
 

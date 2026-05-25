@@ -1,6 +1,9 @@
 pub mod entity;
 pub use entity::Entity;
 
+pub mod bvh;
+pub use bvh::BvhNode;
+
 pub mod sphere;
 pub use sphere::Sphere;
 
