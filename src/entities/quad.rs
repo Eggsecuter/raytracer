@@ -8,9 +8,19 @@ pub struct Quad {
 }
 
 impl Quad {
-	pub fn new(material: Material, a: Vector3, b: Vector3, c: Vector3, d: Vector3) -> Self {
+	pub fn new(
+		a: Vector3,
+		b: Vector3,
+		c: Vector3,
+		d: Vector3,
+		material: Material,
+		normal: Option<Vector3>,
+	) -> Self {
 		Self {
-			triangles: [Triangle::new(material, a, b, c), Triangle::new(material, a, c, d)],
+			triangles: [
+				Triangle::new(a, b, c, material, normal),
+				Triangle::new(a, c, d, material, normal),
+			],
 		}
 	}
 }

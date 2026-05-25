@@ -9,8 +9,16 @@ pub struct AabbBox {
 
 impl AabbBox {
 	pub fn new(material: Material, min: Vector3, max: Vector3) -> Self {
-		let Vector3 { x: x0, y: y0, z: z0 } = min;
-		let Vector3 { x: x1, y: y1, z: z1 } = max;
+		let Vector3 {
+			x: x0,
+			y: y0,
+			z: z0,
+		} = min;
+		let Vector3 {
+			x: x1,
+			y: y1,
+			z: z1,
+		} = max;
 
 		let v000 = Vector3::new(x0, y0, z0);
 		let v001 = Vector3::new(x0, y0, z1);
@@ -26,28 +34,23 @@ impl AabbBox {
 		Self {
 			triangles: [
 				// -X
-				Triangle::new(m, v000, v010, v011),
-				Triangle::new(m, v000, v011, v001),
-
+				Triangle::new(v000, v010, v011, m, None),
+				Triangle::new(v000, v011, v001, m, None),
 				// +X
-				Triangle::new(m, v100, v101, v111),
-				Triangle::new(m, v100, v111, v110),
-
+				Triangle::new(v100, v101, v111, m, None),
+				Triangle::new(v100, v111, v110, m, None),
 				// -Y
-				Triangle::new(m, v000, v001, v101),
-				Triangle::new(m, v000, v101, v100),
-
+				Triangle::new(v000, v001, v101, m, None),
+				Triangle::new(v000, v101, v100, m, None),
 				// +Y
-				Triangle::new(m, v010, v110, v111),
-				Triangle::new(m, v010, v111, v011),
-
+				Triangle::new(v010, v110, v111, m, None),
+				Triangle::new(v010, v111, v011, m, None),
 				// -Z
-				Triangle::new(m, v000, v100, v110),
-				Triangle::new(m, v000, v110, v010),
-
+				Triangle::new(v000, v100, v110, m, None),
+				Triangle::new(v000, v110, v010, m, None),
 				// +Z
-				Triangle::new(m, v001, v011, v111),
-				Triangle::new(m, v001, v111, v101),
+				Triangle::new(v001, v011, v111, m, None),
+				Triangle::new(v001, v111, v101, m, None),
 			],
 		}
 	}

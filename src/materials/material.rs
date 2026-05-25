@@ -7,7 +7,7 @@ use crate::materials::{DielectricMaterial, LambertMaterial, MetalMaterial};
 pub enum Material {
 	Lambert(LambertMaterial),
 	Metal(MetalMaterial),
-	Dielectric(DielectricMaterial)
+	Dielectric(DielectricMaterial),
 }
 
 impl Display for Material {

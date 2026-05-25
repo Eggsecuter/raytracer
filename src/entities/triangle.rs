@@ -12,10 +12,16 @@ pub struct Triangle {
 }
 
 impl Triangle {
-	pub fn new(material: Material, v0: Vector3, v1: Vector3, v2: Vector3) -> Self {
+	pub fn new(
+		v0: Vector3,
+		v1: Vector3,
+		v2: Vector3,
+		material: Material,
+		normal: Option<Vector3>,
+	) -> Self {
 		let edge1 = v1 - v0;
 		let edge2 = v2 - v0;
-		let normal = edge1.cross(edge2).normalize();
+		let normal = normal.unwrap_or_else(|| edge1.cross(edge2)).normalize();
 
 		Self {
 			material,
@@ -34,7 +40,8 @@ impl Entity for Triangle {
 
 		let epsilon = 1e-6;
 
-		if ray.check_front && determinant <= epsilon || !ray.check_front && determinant >= -epsilon {
+		if ray.check_front && determinant <= epsilon || !ray.check_front && determinant >= -epsilon
+		{
 			return None;
 		}
 
@@ -61,14 +68,18 @@ impl Entity for Triangle {
 
 		let intersection_point = ray.origin + ray.direction * distance_along_ray;
 
-		let normal = if ray.check_front { self.normal } else { -self.normal };
+		let normal = if ray.check_front {
+			self.normal
+		} else {
+			-self.normal
+		};
 
 		Some(RayHit::new(
 			distance_along_ray,
 			intersection_point,
 			normal,
 			self.material,
-			ray.check_front
+			ray.check_front,
 		))
 	}
 }

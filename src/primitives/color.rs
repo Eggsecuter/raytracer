@@ -63,7 +63,11 @@ impl Color {
 	}
 
 	pub fn clamped(&self) -> Color {
-		Color::new(self.red.clamp(0.0, 1.0), self.green.clamp(0.0, 1.0), self.blue.clamp(0.0, 1.0))
+		Color::new(
+			self.red.clamp(0.0, 1.0),
+			self.green.clamp(0.0, 1.0),
+			self.blue.clamp(0.0, 1.0),
+		)
 	}
 
 	pub fn exp(self) -> Self {

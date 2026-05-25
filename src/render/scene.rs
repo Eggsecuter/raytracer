@@ -1,9 +1,9 @@
 use crate::entities::entity::Entity;
 use crate::lights::light::Light;
 use crate::materials::{DielectricMaterial, LambertMaterial, Material, MetalMaterial};
-use crate::primitives::{Ray, Vector3};
 use crate::primitives::color::Color;
 use crate::primitives::ray_hit::RayHit;
+use crate::primitives::{Ray, Vector3};
 use crate::render::Camera;
 
 use rayon::prelude::*;
@@ -18,7 +18,7 @@ pub struct Scene {
 
 	background_color: Color,
 	trace_depth: i32,
-	smooth_samples: i32
+	smooth_samples: i32,
 }
 
 impl Scene {
@@ -31,7 +31,7 @@ impl Scene {
 			global_lights: Vec::new(),
 			background_color: Color::BLACK,
 			trace_depth: 4,
-			smooth_samples: 32
+			smooth_samples: 32,
 		}
 	}
 
@@ -41,7 +41,12 @@ impl Scene {
 			.enumerate()
 			.for_each(|(y, row)| {
 				for (x, pixel) in row.iter_mut().enumerate().take(self.width) {
-					let ray = self.camera.get_ray(x as f32, y as f32, self.width as f32, self.height as f32);
+					let ray = self.camera.get_ray(
+						x as f32,
+						y as f32,
+						self.width as f32,
+						self.height as f32,
+					);
 					let color = self.trace_ray(ray, self.trace_depth).clamped();
 
 					let r = (color.red * 255.0) as u32;
@@ -60,21 +65,17 @@ impl Scene {
 
 		let hit = match self.intersect(ray) {
 			Some(intersection) => intersection,
-			None => return self.background_color
+			None => return self.background_color,
 		};
 
 		match hit.material {
-			Material::Lambert(material) => {
-				return self.shade(hit, material)
-			}
+			Material::Lambert(material) => return self.shade(hit, material),
 
 			Material::Metal(material) => {
-				return self.reflect(ray, hit, material, depth) * material.specular
+				return self.reflect(ray, hit, material, depth) * material.specular;
 			}
 
-			Material::Dielectric(material) => {
-				return self.refract(ray, hit, material, depth)
-			}
+			Material::Dielectric(material) => return self.refract(ray, hit, material, depth),
 		}
 	}
 
@@ -84,14 +85,13 @@ impl Scene {
 
 		for entity in &self.entities {
 			if let Some(hit) = entity.intersect(&ray)
-				&& (closest_hit.is_none()
-					|| hit.distance <= closest_hit.as_ref().unwrap().distance)
+				&& (closest_hit.is_none() || hit.distance <= closest_hit.as_ref().unwrap().distance)
 			{
 				closest_hit = Some(hit);
 			}
 		}
 
-		return closest_hit
+		return closest_hit;
 	}
 
 	fn shade(&self, hit: RayHit, material: LambertMaterial) -> Color {
@@ -102,11 +102,7 @@ impl Scene {
 		for light in &self.global_lights {
 			let to_light = light.position() - hit.point;
 			let distance_to_light = to_light.length();
-			let shadow_ray = Ray::new(
-				hit.point + hit.normal * 1e-4,
-				to_light.normalize(),
-				true
-			);
+			let shadow_ray = Ray::new(hit.point + hit.normal * 1e-4, to_light.normalize(), true);
 
 			// check if point is in shadow
 			let mut in_light = true;
@@ -129,7 +125,7 @@ impl Scene {
 		// final shadow factor
 		diffuse_color *= in_light_count as f32 / self.global_lights.len().max(1) as f32;
 
-		return material.albedo * diffuse_color + material.ambient
+		return material.albedo * diffuse_color + material.ambient;
 	}
 
 	fn reflect(&self, ray: Ray, hit: RayHit, material: MetalMaterial, depth: i32) -> Color {
@@ -171,7 +167,11 @@ impl Scene {
 			(material.refractive_index, 1.0)
 		};
 
-		let reflected_ray = Ray::new(self.get_offset_point(hit), self.get_reflected_direction(ray, hit), hit.front_face);
+		let reflected_ray = Ray::new(
+			self.get_offset_point(hit),
+			self.get_reflected_direction(ray, hit),
+			hit.front_face,
+		);
 		let reflected_color = self.trace_ray(reflected_ray, depth - 1);
 
 		let eta = eta1 / eta2;
@@ -184,8 +184,13 @@ impl Scene {
 			return reflected_color;
 		}
 
-		let refracted_direction = ray.direction.normalize() * eta + hit.normal.normalize() * (eta * cos_theta - k.sqrt());
-		let refracted_ray = Ray::new(self.get_negative_offset_point(hit), refracted_direction, !hit.front_face);
+		let refracted_direction =
+			ray.direction.normalize() * eta + hit.normal.normalize() * (eta * cos_theta - k.sqrt());
+		let refracted_ray = Ray::new(
+			self.get_negative_offset_point(hit),
+			refracted_direction,
+			!hit.front_face,
+		);
 		let mut refracted_color = self.trace_ray(refracted_ray, depth - 1);
 
 		if !hit.front_face {

@@ -5,7 +5,7 @@ use crate::primitives::Color;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct LambertMaterial {
 	pub ambient: Color,
-	pub albedo: Color
+	pub albedo: Color,
 }
 
 impl LambertMaterial {
@@ -17,18 +17,14 @@ impl LambertMaterial {
 	#[allow(dead_code)]
 	pub fn from_color(color: Color) -> Self {
 		Self {
-			ambient: color  * 0.1,
-			albedo: color
+			ambient: color * 0.1,
+			albedo: color,
 		}
 	}
 }
 
 impl Display for LambertMaterial {
 	fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-		write!(
-			f,
-			"LambertMaterial[{}, {}]",
-			self.ambient, self.albedo
-		)
+		write!(f, "LambertMaterial[{}, {}]", self.ambient, self.albedo)
 	}
 }

@@ -29,7 +29,8 @@ impl Entity for Sphere {
 		let projection_len = 2.0 * ray.direction.dot(&origin_to_center);
 		let center_dist_sq = origin_to_center.dot(&origin_to_center) - self.radius * self.radius;
 
-		let discriminant = projection_len * projection_len - 4.0 * direction_len_sq * center_dist_sq;
+		let discriminant =
+			projection_len * projection_len - 4.0 * direction_len_sq * center_dist_sq;
 
 		let epsilon = 1e-6;
 
@@ -68,14 +69,18 @@ impl Entity for Sphere {
 			return None;
 		}
 
-		let normal = if ray.check_front { surface_normal } else { -surface_normal };
+		let normal = if ray.check_front {
+			surface_normal
+		} else {
+			-surface_normal
+		};
 
 		Some(RayHit::new(
 			hit_distance,
 			hit_point,
 			normal,
 			self.material,
-			front_face
+			front_face,
 		))
 	}
 }

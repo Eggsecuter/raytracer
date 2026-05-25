@@ -53,10 +53,7 @@ fn save_buffer_as_jpg(buffer: &[u32], width: usize, height: usize) {
 
 	let path = format!("output/{}.jpg", timestamp);
 
-	let mut img = ImageBuffer::<Rgb<u8>, Vec<u8>>::new(
-		width as u32,
-		height as u32,
-	);
+	let mut img = ImageBuffer::<Rgb<u8>, Vec<u8>>::new(width as u32, height as u32);
 
 	for y in 0..height {
 		for x in 0..width {
