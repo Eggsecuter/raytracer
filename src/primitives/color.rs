@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter, Result};
-use std::ops::{Add, AddAssign, Mul, MulAssign};
+use std::ops::{Add, AddAssign, Div, Mul, MulAssign};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color {
@@ -62,12 +62,19 @@ impl Color {
 		}
 	}
 
-	pub fn clamped(&self) -> Color {
-		Color::new(
-			self.red.clamp(0.0, 1.0),
-			self.green.clamp(0.0, 1.0),
-			self.blue.clamp(0.0, 1.0),
-		)
+	pub fn srgb_to_linear(self) -> Self {
+		self.powf(2.2)
+	}
+
+	pub fn linear_to_srgb(self) -> Self {
+		self.powf(1.0 / 2.2)
+	}
+
+	pub fn hdr_to_ldr(self, exposure: Option<f32>) -> Self {
+		let exposure = exposure.unwrap_or(0.0);
+		let hdr_color = self * 2.0_f32.powf(exposure);
+
+		hdr_color / (hdr_color + 1.0)
 	}
 
 	pub fn exp(self) -> Self {
@@ -75,6 +82,14 @@ impl Color {
 			red: self.red.exp(),
 			green: self.green.exp(),
 			blue: self.blue.exp(),
+		}
+	}
+
+	fn powf(self, exp: f32) -> Self {
+		Self {
+			red: self.red.powf(exp),
+			green: self.green.powf(exp),
+			blue: self.blue.powf(exp),
 		}
 	}
 }
@@ -94,6 +109,18 @@ impl Add for Color {
 impl AddAssign for Color {
 	fn add_assign(&mut self, other: Color) {
 		*self = *self + other
+	}
+}
+
+impl Add<f32> for Color {
+	type Output = Color;
+
+	fn add(self, rhs: f32) -> Self::Output {
+		Color {
+			red: self.red + rhs,
+			green: self.green + rhs,
+			blue: self.blue + rhs,
+		}
 	}
 }
 
@@ -126,6 +153,18 @@ impl Mul<f32> for Color {
 impl MulAssign<f32> for Color {
 	fn mul_assign(&mut self, scalar: f32) {
 		*self = *self * scalar
+	}
+}
+
+impl Div for Color {
+	type Output = Color;
+
+	fn div(self, other: Color) -> Self::Output {
+		Color {
+			red: self.red / other.red,
+			green: self.green / other.green,
+			blue: self.blue / other.blue,
+		}
 	}
 }
 

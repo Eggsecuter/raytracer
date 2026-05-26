@@ -1,7 +1,7 @@
 use crate::entities::{Quad, Sphere};
 use crate::lights::OmniLight;
 use crate::materials::{LambertMaterial, Material};
-use crate::primitives::{Color, Quaternion, Transform, Vector3};
+use crate::primitives::{Color, Transform, Vector3};
 use crate::render::{Camera, Scene};
 
 #[allow(dead_code)]
@@ -78,9 +78,17 @@ pub fn build(width: usize, height: usize) -> Scene {
 	);
 	scene.entities.push(Box::new(moon));
 
-	let ceiling_light =
-		OmniLight::new(Color::new(0.9, 0.9, 0.9), Vector3::new(1.0, 0.0, 1.0));
-	scene.global_lights.push(Box::new(ceiling_light));
+	let light =
+		OmniLight::new(Color::new(1.0, 1.0, 1.0), Vector3::new(1.0, 0.0, 1.0));
+	scene.global_lights.push(Box::new(light));
+
+	let light2 =
+		OmniLight::new(Color::new(1.0, 1.0, 1.0), Vector3::new(-1.0, 0.0, 1.0));
+	scene.global_lights.push(Box::new(light2));
+
+	let light3 =
+		OmniLight::new(Color::new(1.0, 1.0, 1.0), Vector3::new(0.0, 1.0, 1.0));
+	scene.global_lights.push(Box::new(light3));
 
 	scene
 }

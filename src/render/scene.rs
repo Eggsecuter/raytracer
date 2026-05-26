@@ -69,7 +69,6 @@ impl Scene {
 	pub fn render(&mut self, buffer: &mut [u32]) {
 		self.build_bvh();
 
-		// Reborrow as &Scene so the closure can be sent across threads.
 		let scene: &Scene = self;
 
 		buffer
@@ -77,8 +76,7 @@ impl Scene {
 			.enumerate()
 			.for_each(|(y, row)| {
 				for (x, pixel) in row.iter_mut().enumerate().take(scene.width) {
-					let color = if scene.aa_samples <= 1 {
-						// Single centred ray — no anti-aliasing overhead.
+					let hdr_color = if scene.aa_samples <= 1 {
 						let ray = scene.camera.get_ray(
 							x as f32,
 							y as f32,
@@ -89,9 +87,6 @@ impl Scene {
 						);
 						scene.trace_ray(ray, scene.trace_depth)
 					} else {
-						// Accumulate N Halton-jittered rays and average them.
-						// Halton indices are 1-based; index 0 always returns 0
-						// which would bias all samples to the pixel corner.
 						let mut accumulated = Color::BLACK;
 						for s in 1..=scene.aa_samples {
 							let (dx, dy) = halton_2d(s);
@@ -106,12 +101,14 @@ impl Scene {
 							accumulated += scene.trace_ray(ray, scene.trace_depth);
 						}
 						accumulated * (1.0 / scene.aa_samples as f32)
-					}
-					.clamped();
+					};
 
-					let r = (color.red * 255.0) as u32;
-					let g = (color.green * 255.0) as u32;
-					let b = (color.blue * 255.0) as u32;
+					let lrd_color = hdr_color.hdr_to_ldr(None);
+					let pixel_color = lrd_color.linear_to_srgb();
+
+					let r = (pixel_color.red * 255.0) as u32;
+					let g = (pixel_color.green * 255.0) as u32;
+					let b = (pixel_color.blue * 255.0) as u32;
 
 					*pixel = (r << 16) | (g << 8) | b;
 				}
@@ -128,7 +125,7 @@ impl Scene {
 			None => return self.background_color,
 		};
 
-		// Clone the material before matching so `hit` is not partially moved
+		// clone the material before matching so `hit` is not partially moved
 		// and can still be forwarded to the shading functions intact.
 		match hit.material.clone() {
 			Material::Lambert(material) => return self.shade(hit, material),
@@ -146,7 +143,7 @@ impl Scene {
 			return bvh.intersect(&ray);
 		}
 
-		// Fallback linear search when the BVH has not been built yet.
+		// fallback linear search
 		let mut closest_hit: Option<RayHit> = None;
 		for entity in &self.entities {
 			if let Some(hit) = entity.intersect(&ray)
@@ -180,7 +177,6 @@ impl Scene {
 
 		diffuse_color *= in_light_count as f32 / self.global_lights.len().max(1) as f32;
 
-		// Sample albedo from the hit UV — flat colours ignore it, textures use it.
 		material.albedo_at(hit.uv) * diffuse_color + material.ambient
 	}
 

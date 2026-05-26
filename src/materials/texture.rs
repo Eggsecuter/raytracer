@@ -28,10 +28,10 @@ impl ImageTexture {
 			.pixels()
 			.map(|p| {
 				Color::new(
-					srgb_to_linear(p[0]),
-					srgb_to_linear(p[1]),
-					srgb_to_linear(p[2]),
-				)
+					p[0] as f32 / 255.0,
+					p[1] as f32 / 255.0,
+					p[2] as f32 / 255.0,
+				).srgb_to_linear()
 			})
 			.collect();
 
@@ -98,14 +98,5 @@ impl std::fmt::Debug for ImageTexture {
 			.field("width", &self.width)
 			.field("height", &self.height)
 			.finish_non_exhaustive()
-	}
-}
-
-fn srgb_to_linear(byte: u8) -> f32 {
-	let s = byte as f32 / 255.0;
-	if s <= 0.04045 {
-		s / 12.92
-	} else {
-		((s + 0.055) / 1.055).powf(2.4)
 	}
 }

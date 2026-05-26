@@ -14,11 +14,6 @@ impl UV {
 		Self { u, v }
 	}
 
-	#[allow(dead_code)]
-	pub fn lerp(a: UV, b: UV, t: f32) -> UV {
-		UV::new(a.u + (b.u - a.u) * t, a.v + (b.v - a.v) * t)
-	}
-
 	pub fn barycentric(a: UV, b: UV, c: UV, bu: f32, bv: f32) -> UV {
 		let w = 1.0 - bu - bv;
 		UV::new(
