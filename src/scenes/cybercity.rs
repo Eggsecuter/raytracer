@@ -5,7 +5,10 @@ use crate::primitives::{Color, Transform, Vector3};
 use crate::render::{Camera, Scene};
 
 #[allow(dead_code)]
-pub fn build(width: usize, height: usize) -> Scene {
+pub fn build() -> Scene {
+	let width = 2378 / 4;
+	let height = 1682 / 4;
+
 	let camera = Camera::new(None, None, Some(width as f32 / height as f32));
 
 	let mut scene = Scene::new(camera, width, height);
@@ -79,16 +82,12 @@ pub fn build(width: usize, height: usize) -> Scene {
 	scene.entities.push(Box::new(moon));
 
 	let light =
-		OmniLight::new(Color::new(1.0, 1.0, 1.0), Vector3::new(1.0, 0.0, 1.0));
+		OmniLight::new(Color::new(0.6, 0.6, 0.6), Vector3::new(1.0, 0.0, 1.0));
 	scene.global_lights.push(Box::new(light));
 
 	let light2 =
-		OmniLight::new(Color::new(1.0, 1.0, 1.0), Vector3::new(-1.0, 0.0, 1.0));
+		OmniLight::new(Color::new(0.6, 0.6, 0.6), Vector3::new(-1.0, 0.0, 1.0));
 	scene.global_lights.push(Box::new(light2));
-
-	let light3 =
-		OmniLight::new(Color::new(1.0, 1.0, 1.0), Vector3::new(0.0, 1.0, 1.0));
-	scene.global_lights.push(Box::new(light3));
 
 	scene
 }

@@ -76,7 +76,7 @@ impl Entity for Sphere {
 			-surface_normal
 		};
 
-		let uv = sphere_uv(surface_normal);
+		let uv = sphere_uv(surface_normal, &self.transform.rotation);
 
 		Some(RayHit::new(
 			hit_distance,
@@ -89,10 +89,16 @@ impl Entity for Sphere {
 	}
 }
 
-fn sphere_uv(n: Vector3) -> UV {
+fn sphere_uv(position: Vector3, rotation: &crate::primitives::Quaternion) -> UV {
 	use std::f32::consts::{PI, TAU};
-	let u = (f32::atan2(-n.z, n.x) + PI) / TAU;
-	let v = (n.y.clamp(-1.0, 1.0).asin() + PI / 2.0) / PI;
+	// Rotate the position back to local space to calculate UV coordinates
+	// This ensures the UV coordinates respect the sphere's rotation
+	let inverse_rotation = rotation.conjugate();
+	let local_position = inverse_rotation.rotate_vector(position);
+	let normalized = local_position.normalize();
+	
+	let u = (f32::atan2(-normalized.z, normalized.x) + PI) / TAU;
+	let v = (normalized.y.clamp(-1.0, 1.0).asin() + PI / 2.0) / PI;
 
 	UV::new(u, v)
 }

@@ -5,7 +5,10 @@ use crate::primitives::{Color, Quaternion, Vector3};
 use crate::render::{Camera, Scene};
 
 #[allow(dead_code)]
-pub fn build(width: usize, height: usize) -> Scene {
+pub fn build() -> Scene {
+	let width = 1500;
+	let height = 1000;
+
 	let camera = Camera::new(None, None, Some(width as f32 / height as f32));
 
 	let mut scene = Scene::new(camera, width, height);

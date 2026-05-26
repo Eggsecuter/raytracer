@@ -13,33 +13,30 @@ use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use scenes::cybercity;
 
-const WIDTH: usize = 1500;
-const HEIGHT: usize = 1000;
-
 fn main() {
-	let mut window = Window::new(
-		"Eggsecuter Raytracer",
-		WIDTH,
-		HEIGHT,
-		WindowOptions::default(),
-	)
-	.unwrap();
-
-	let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
-	let mut scene = cybercity::build(WIDTH, HEIGHT);
+	let mut scene = cybercity::build();
+	let mut buffer: Vec<u32> = vec![0; scene.width * scene.height];
 
 	let start = Instant::now();
 	scene.render(&mut buffer);
 	println!("Rendered in {}ms", start.elapsed().as_millis());
 
-	save_buffer_as_jpg(&buffer, WIDTH, HEIGHT);
+	save_buffer_as_jpg(&buffer, scene.width, scene.height);
+
+	let mut window = Window::new(
+		"Eggsecuter Raytracer",
+		scene.width,
+		scene.height,
+		WindowOptions::default(),
+	)
+	.unwrap();
 
 	while window.is_open()
 		&& !window.is_key_down(Key::Escape)
 		&& !window.is_key_down(Key::Space)
 		&& !window.is_key_down(Key::Enter)
 	{
-		window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
+		window.update_with_buffer(&buffer, scene.width, scene.height).unwrap();
 	}
 }
 

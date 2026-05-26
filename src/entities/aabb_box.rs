@@ -1,16 +1,20 @@
 use crate::entities::{Entity, Triangle};
 use crate::materials::Material;
-use crate::primitives::{Aabb, Ray, RayHit, Vector3, UV};
+use crate::primitives::{Aabb, Ray, RayHit, Transform, Vector3, UV};
 
 #[derive(Debug, Clone)]
 pub struct AabbBox {
 	pub triangles: [Triangle; 12],
-	pub min: Vector3,
-	pub max: Vector3,
+	pub transform: Transform,
+	pub size: Vector3,
 }
 
 impl AabbBox {
-	pub fn new(material: Material, min: Vector3, max: Vector3) -> Self {
+	pub fn new(material: Material, transform: Transform, size: Vector3) -> Self {
+		// Size is (max - min) in local space, starting from origin
+		let min = Vector3::new(0.0, 0.0, 0.0);
+		let max = size;
+
 		let Vector3 {
 			x: x0,
 			y: y0,
@@ -38,13 +42,21 @@ impl AabbBox {
 			UV::new(0.0, 1.0),
 		);
 
-		let t = |a, b, c, uv_a, uv_b, uv_c| {
-			Triangle::with_uvs(a, b, c, uv_a, uv_b, uv_c, material.clone(), None)
+		let transform_pos = transform.position;
+		let transform_rot = transform.rotation;
+
+		let t = |a: Vector3, b: Vector3, c: Vector3, uv_a, uv_b, uv_c| {
+			// Apply transform to vertices
+			let a_transformed = transform_rot.rotate_vector(a) + transform_pos;
+			let b_transformed = transform_rot.rotate_vector(b) + transform_pos;
+			let c_transformed = transform_rot.rotate_vector(c) + transform_pos;
+			
+			Triangle::with_uvs(a_transformed, b_transformed, c_transformed, uv_a, uv_b, uv_c, material.clone(), None)
 		};
 
 		Self {
-			min,
-			max,
+			transform,
+			size,
 			triangles: [
 				t(v000, v010, v011, u00, u01, u11),
 				t(v000, v011, v001, u00, u11, u10),
@@ -65,18 +77,40 @@ impl AabbBox {
 
 impl Entity for AabbBox {
 	fn bounding_box(&self) -> Aabb {
-		Aabb::new(
-			Vector3::new(
-				self.min.x.min(self.max.x),
-				self.min.y.min(self.max.y),
-				self.min.z.min(self.max.z),
-			),
-			Vector3::new(
-				self.min.x.max(self.max.x),
-				self.min.y.max(self.max.y),
-				self.min.z.max(self.max.z),
-			),
-		)
+		// Calculate bounding box in local space (size is max - min, starting from origin)
+		let local_min = Vector3::new(0.0, 0.0, 0.0);
+		let local_max = self.size;
+
+		// Transform the 8 corners of the box to world space and find bounds
+		let corners = [
+			Vector3::new(local_min.x, local_min.y, local_min.z),
+			Vector3::new(local_max.x, local_min.y, local_min.z),
+			Vector3::new(local_min.x, local_max.y, local_min.z),
+			Vector3::new(local_max.x, local_max.y, local_min.z),
+			Vector3::new(local_min.x, local_min.y, local_max.z),
+			Vector3::new(local_max.x, local_min.y, local_max.z),
+			Vector3::new(local_min.x, local_max.y, local_max.z),
+			Vector3::new(local_max.x, local_max.y, local_max.z),
+		];
+
+		let mut aabb_min = Vector3::new(f32::INFINITY, f32::INFINITY, f32::INFINITY);
+		let mut aabb_max = Vector3::new(f32::NEG_INFINITY, f32::NEG_INFINITY, f32::NEG_INFINITY);
+
+		for corner in corners.iter() {
+			// Rotate corner by transform rotation, then translate
+			let rotated = self.transform.rotation.rotate_vector(*corner);
+			let world_corner = rotated + self.transform.position;
+
+			aabb_min.x = aabb_min.x.min(world_corner.x);
+			aabb_min.y = aabb_min.y.min(world_corner.y);
+			aabb_min.z = aabb_min.z.min(world_corner.z);
+
+			aabb_max.x = aabb_max.x.max(world_corner.x);
+			aabb_max.y = aabb_max.y.max(world_corner.y);
+			aabb_max.z = aabb_max.z.max(world_corner.z);
+		}
+
+		Aabb::new(aabb_min, aabb_max)
 	}
 
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {

@@ -5,7 +5,10 @@ use crate::primitives::{Color, Transform, Vector3};
 use crate::render::{Camera, Scene};
 
 #[allow(dead_code)]
-pub fn build(width: usize, height: usize) -> Scene {
+pub fn build() -> Scene {
+	let width = 1500;
+	let height = 1000;
+
 	let camera = Camera::new(None, None, Some(width as f32 / height as f32));
 
 	let mut scene = Scene::new(camera, width, height);
@@ -90,16 +93,8 @@ pub fn build(width: usize, height: usize) -> Scene {
 
 	let aabb_box = AabbBox::new(
 		Material::Dielectric(DielectricMaterial::GLASS),
-		Vector3 {
-			x: 1.0,
-			y: 1.0,
-			z: 5.0,
-		},
-		Vector3 {
-			x: 2.0,
-			y: -2.0,
-			z: 6.5,
-		},
+		Transform::new(Some(Vector3::new(1.0, 1.0, 5.0)), None),
+		Vector3::new(1.0, -3.0, 1.5),
 	);
 	scene.entities.push(Box::new(aabb_box));
 
