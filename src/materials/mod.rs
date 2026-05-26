@@ -1,8 +1,8 @@
 pub mod material;
 pub use material::Material;
 
-pub mod lambert;
-pub use lambert::LambertMaterial;
+pub mod shaded;
+pub use shaded::ShadedMaterial;
 
 pub mod metal;
 pub use metal::MetalMaterial;

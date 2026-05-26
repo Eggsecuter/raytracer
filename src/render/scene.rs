@@ -3,7 +3,7 @@ use std::path::Path;
 
 use crate::entities::{BvhNode, Entity, Mesh};
 use crate::lights::light::Light;
-use crate::materials::{DielectricMaterial, LambertMaterial, Material, MetalMaterial};
+use crate::materials::{DielectricMaterial, ShadedMaterial, Material, MetalMaterial};
 use crate::primitives::color::Color;
 use crate::primitives::ray_hit::RayHit;
 use crate::primitives::{Quaternion, Ray, Vector3};
@@ -128,7 +128,7 @@ impl Scene {
 		// clone the material before matching so `hit` is not partially moved
 		// and can still be forwarded to the shading functions intact.
 		match hit.material.clone() {
-			Material::Lambert(material) => return self.shade(hit, material),
+			Material::Shaded(material) => return self.shade(hit, material),
 
 			Material::Metal(material) => {
 				return self.reflect(ray, hit, material, depth) * material.specular;
@@ -155,25 +155,41 @@ impl Scene {
 		closest_hit
 	}
 
-	fn shade(&self, hit: RayHit, material: LambertMaterial) -> Color {
-		let mut diffuse_color = Color::BLACK;
+	fn shade(&self, hit: RayHit, material: ShadedMaterial) -> Color {
+		let mut color = material.ambient * material.ka;
+
+		let view_direction = hit.normal.normalize();
 
 		for light in &self.global_lights {
 			let to_light = light.position() - hit.point;
 			let distance_to_light = to_light.length();
-			let shadow_ray = Ray::new(hit.point + hit.normal * 1e-4, to_light.normalize(), true);
+			let l = to_light / distance_to_light;
+
+			let shadow_ray = Ray::new(hit.point + hit.normal * 1e-4, l, true);
 
 			// A hit closer than the light means this point is in shadow.
 			let in_light = self
 				.intersect(shadow_ray)
 				.map_or(true, |shadow_hit| shadow_hit.distance >= distance_to_light);
 
-			if in_light {
-				diffuse_color += light.calculate_color(&hit);
+			if !in_light {
+				continue
 			}
+
+			let light_color = light.calculate_color(&hit);
+			let n_dot_l = hit.normal.dot(&l).max(0.0);
+			let diffuse = material.kd * n_dot_l;
+
+			let h = (l + view_direction).normalize();
+			let n_dot_h = hit.normal.dot(&h).max(0.0);
+			let specular = material.ks * n_dot_h.powf(material.shininess);
+
+			let albedo = material.albedo_at(hit.uv);
+
+			color += light_color * (albedo * diffuse + specular);
 		}
 
-		material.albedo_at(hit.uv) * diffuse_color + material.ambient
+		color
 	}
 
 	fn reflect(&self, ray: Ray, hit: RayHit, material: MetalMaterial, depth: i32) -> Color {

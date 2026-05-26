@@ -1,6 +1,6 @@
 use crate::entities::{AabbBox, Quad, Sphere};
 use crate::lights::PointLight;
-use crate::materials::{DielectricMaterial, LambertMaterial, Material, MetalMaterial};
+use crate::materials::{DielectricMaterial, ShadedMaterial, Material, MetalMaterial};
 use crate::primitives::{Color, Transform, Vector3};
 use crate::render::{Camera, Scene};
 
@@ -28,7 +28,7 @@ pub fn build() -> Scene {
 		front_left_bottom,
 		back_left_bottom,
 		back_right_bottom,
-		Material::Lambert(LambertMaterial::from_color(Color::WHITE)),
+		Material::Shaded(ShadedMaterial::from_color(Color::WHITE)),
 		None,
 	);
 	scene.entities.push(Box::new(floor));
@@ -37,7 +37,7 @@ pub fn build() -> Scene {
 		front_right_top,
 		back_right_top,
 		back_left_top,
-		Material::Lambert(LambertMaterial::from_color(Color::WHITE)),
+		Material::Shaded(ShadedMaterial::from_color(Color::WHITE)),
 		None,
 	);
 	scene.entities.push(Box::new(ceiling));
@@ -46,7 +46,7 @@ pub fn build() -> Scene {
 		back_left_top,
 		back_right_top,
 		back_right_bottom,
-		Material::Lambert(LambertMaterial::from_color(Color::WHITE)),
+		Material::Shaded(ShadedMaterial::from_color(Color::WHITE)),
 		None,
 	);
 	scene.entities.push(Box::new(back_wall));
@@ -55,7 +55,7 @@ pub fn build() -> Scene {
 		front_right_bottom,
 		front_right_top,
 		front_left_top,
-		Material::Lambert(LambertMaterial::from_color(Color::WHITE)),
+		Material::Shaded(ShadedMaterial::from_color(Color::WHITE)),
 		None,
 	);
 	scene.entities.push(Box::new(front_wall));
@@ -64,7 +64,7 @@ pub fn build() -> Scene {
 		front_left_top,
 		back_left_top,
 		back_left_bottom,
-		Material::Lambert(LambertMaterial::from_color(Color::RED)),
+		Material::Shaded(ShadedMaterial::from_color(Color::RED)),
 		None,
 	);
 	scene.entities.push(Box::new(left_wall));
@@ -73,7 +73,7 @@ pub fn build() -> Scene {
 		back_right_bottom,
 		back_right_top,
 		front_right_top,
-		Material::Lambert(LambertMaterial::from_color(Color::GREEN)),
+		Material::Shaded(ShadedMaterial::from_color(Color::GREEN)),
 		None,
 	);
 	scene.entities.push(Box::new(right_wall));

@@ -8,17 +8,26 @@ use crate::primitives::{Color, UV};
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
-pub struct LambertMaterial {
+pub struct ShadedMaterial {
 	pub ambient: Color,
 	pub albedo: Albedo,
+
+	pub shininess: f32,
+	pub kd: f32, // diffuse coefficient
+	pub ks: f32, // specular coefficient
+	pub ka: f32, // ambient coefficient
 }
 
-impl LambertMaterial {
+impl ShadedMaterial {
 	#[allow(dead_code)]
-	pub fn new(ambient: Color, albedo: Color) -> Self {
+	pub fn new(ambient: Color, albedo: Color, shininess: f32, kd: f32, ks: f32, ka: f32) -> Self {
 		Self {
 			ambient,
 			albedo: Albedo::Color(albedo),
+			shininess,
+			kd,
+			ks,
+			ka,
 		}
 	}
 
@@ -27,6 +36,10 @@ impl LambertMaterial {
 		Self {
 			ambient: color * 0.1,
 			albedo: Albedo::Color(color),
+			shininess: 32.0,
+			kd: 0.8,
+			ks: 0.2,
+			ka: 0.05,
 		}
 	}
 
@@ -36,6 +49,10 @@ impl LambertMaterial {
 		Ok(Self {
 			ambient,
 			albedo: Albedo::Texture(Arc::new(texture)),
+			shininess: 128.0,
+			kd: 0.8,
+			ks: 0.2,
+			ka: 0.05,
 		})
 	}
 
@@ -44,7 +61,7 @@ impl LambertMaterial {
 	}
 }
 
-impl Display for LambertMaterial {
+impl Display for ShadedMaterial {
 	fn fmt(&self, f: &mut Formatter<'_>) -> Result {
 		match &self.albedo {
 			Albedo::Color(c) => write!(f, "LambertMaterial[ambient={}, albedo={}]", self.ambient, c),
