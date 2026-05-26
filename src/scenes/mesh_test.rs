@@ -1,5 +1,5 @@
 use crate::entities::Quad;
-use crate::lights::OmniLight;
+use crate::lights::PointLight;
 use crate::materials::{LambertMaterial, Material, MetalMaterial};
 use crate::primitives::{Color, Quaternion, Vector3};
 use crate::render::{Camera, Scene};
@@ -12,8 +12,8 @@ pub fn build() -> Scene {
 	let camera = Camera::new(None, None, Some(width as f32 / height as f32));
 
 	let mut scene = Scene::new(camera, width, height);
-	scene.aa_samples = 128;
-	scene.smooth_samples = 8;
+	// scene.aa_samples = 128;
+	// scene.smooth_samples = 8;
 
 	let front_left_bottom = Vector3::new(-3.0, -2.0, 3.0);
 	let front_right_bottom = Vector3::new(3.0, -2.0, 3.0);
@@ -107,7 +107,11 @@ pub fn build() -> Scene {
 		.expect("failed to load penguin mesh");
 
 	let ceiling_light =
-		OmniLight::new(Color::new(0.9, 0.9, 0.9), Vector3::new(1.0, 1.85, 3.5));
+		PointLight::new(Color::new(1.0, 1.0, 1.0), Vector3::new(1.0, 1.85, 3.5), 10.0);
+	scene.global_lights.push(Box::new(ceiling_light));
+
+	let ceiling_light =
+		PointLight::new(Color::new(0.941, 0.235, 1.0), Vector3::new(0.0, 1.0, 6.0), 5.0);
 	scene.global_lights.push(Box::new(ceiling_light));
 
 	scene

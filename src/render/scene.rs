@@ -157,7 +157,6 @@ impl Scene {
 
 	fn shade(&self, hit: RayHit, material: LambertMaterial) -> Color {
 		let mut diffuse_color = Color::BLACK;
-		let mut in_light_count = 0;
 
 		for light in &self.global_lights {
 			let to_light = light.position() - hit.point;
@@ -171,11 +170,8 @@ impl Scene {
 
 			if in_light {
 				diffuse_color += light.calculate_color(&hit);
-				in_light_count += 1;
 			}
 		}
-
-		diffuse_color *= in_light_count as f32 / self.global_lights.len().max(1) as f32;
 
 		material.albedo_at(hit.uv) * diffuse_color + material.ambient
 	}

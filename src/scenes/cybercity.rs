@@ -1,5 +1,5 @@
 use crate::entities::{Quad, Sphere};
-use crate::lights::OmniLight;
+use crate::lights::PointLight;
 use crate::materials::{LambertMaterial, Material};
 use crate::primitives::{Color, Transform, Vector3};
 use crate::render::{Camera, Scene};
@@ -82,11 +82,11 @@ pub fn build() -> Scene {
 	scene.entities.push(Box::new(moon));
 
 	let light =
-		OmniLight::new(Color::new(0.6, 0.6, 0.6), Vector3::new(1.0, 0.0, 1.0));
+		PointLight::new(Color::new(1.0, 0.0, 0.0), Vector3::new(1.0, 0.0, 1.0), 1.0);
 	scene.global_lights.push(Box::new(light));
 
 	let light2 =
-		OmniLight::new(Color::new(0.6, 0.6, 0.6), Vector3::new(-1.0, 0.0, 1.0));
+		PointLight::new(Color::new(1.0, 1.0, 1.0), Vector3::new(-1.0, 0.0, 1.0), 10.0);
 	scene.global_lights.push(Box::new(light2));
 
 	scene
