@@ -52,4 +52,8 @@ impl Entity for Quad {
 
 		closest_hit
 	}
+
+	fn get_triangle_count(&self) -> i32 {
+		2
+	}
 }

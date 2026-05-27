@@ -60,4 +60,8 @@ impl Entity for BvhNode {
 	fn bounding_box(&self) -> Aabb {
 		self.aabb
 	}
+
+	fn get_triangle_count(&self) -> i32 {
+		self.left.get_triangle_count() + self.right.get_triangle_count()
+	}
 }

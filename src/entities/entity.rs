@@ -5,4 +5,8 @@ pub trait Entity: Sync + Send {
 
 	/// returns an axis-aligned bounding box that fully encloses this entity.
 	fn bounding_box(&self) -> Aabb;
+
+	fn get_triangle_count(&self) -> i32 {
+		0
+	}
 }

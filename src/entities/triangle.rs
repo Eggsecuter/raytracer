@@ -225,4 +225,8 @@ impl Entity for Triangle {
 			uv,
 		))
 	}
+
+	fn get_triangle_count(&self) -> i32 {
+		1
+	}
 }

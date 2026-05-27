@@ -50,7 +50,7 @@ impl AabbBox {
 			let a_transformed = transform_rot.rotate_vector(a) + transform_pos;
 			let b_transformed = transform_rot.rotate_vector(b) + transform_pos;
 			let c_transformed = transform_rot.rotate_vector(c) + transform_pos;
-			
+
 			Triangle::with_uvs(a_transformed, b_transformed, c_transformed, uv_a, uv_b, uv_c, material.clone(), None)
 		};
 
@@ -126,5 +126,9 @@ impl Entity for AabbBox {
 		}
 
 		closest_hit
+	}
+
+	fn get_triangle_count(&self) -> i32 {
+		12
 	}
 }

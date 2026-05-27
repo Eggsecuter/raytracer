@@ -38,6 +38,15 @@ impl DielectricMaterial {
 		refractive_index: 1.4,
 	};
 
+	pub const GLASS_TRANSPARENT: DielectricMaterial = DielectricMaterial {
+		absorption: Color {
+			red: 0.0,
+			green: 0.0,
+			blue: 0.0,
+		},
+		refractive_index: 1.03,
+	};
+
 	pub const GREEN_GLASS: DielectricMaterial = DielectricMaterial {
 		absorption: Color {
 			red: 0.6,
@@ -67,9 +76,9 @@ impl DielectricMaterial {
 
 	pub const EMERALD: DielectricMaterial = DielectricMaterial {
 		absorption: Color {
-			red: 1.2,
-			green: 0.05,
-			blue: 0.9,
+			red: 10.0,
+			green: 0.2,
+			blue: 8.0,
 		},
 		refractive_index: 1.57,
 	};

@@ -36,7 +36,7 @@ impl ShadedMaterial {
 		Self {
 			ambient: color * 0.1,
 			albedo: Albedo::Color(color),
-			shininess: 32.0,
+			shininess: 128.0,
 			kd: 0.8,
 			ks: 0.2,
 			ka: 0.05,

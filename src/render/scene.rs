@@ -1,5 +1,6 @@
 use std::io;
 use std::path::Path;
+use std::sync::atomic::{AtomicI32, Ordering};
 
 use crate::entities::{BvhNode, Entity, Mesh};
 use crate::lights::light::Light;
@@ -26,6 +27,8 @@ pub struct Scene {
 	pub aa_samples: u32,
 
 	bvh: Option<Box<dyn Entity>>,
+	ray_count: AtomicI32,
+	entity_count: u32,
 }
 
 impl Scene {
@@ -41,7 +44,17 @@ impl Scene {
 			smooth_samples: 8,
 			aa_samples: 16,
 			bvh: None,
+			ray_count: AtomicI32::new(0),
+			entity_count: 0,
 		}
+	}
+
+	pub fn print_stats(&self) {
+		println!("Scene stats:");
+		println!("  Entities: {}", self.entity_count);
+		println!("  Lights: {}", self.global_lights.len());
+		println!("  Triangles: {}", self.bvh.as_ref().unwrap().get_triangle_count());
+		println!("  Ray count: {}", self.ray_count.load(Ordering::Relaxed));
 	}
 
 	pub fn add_obj_mesh<P: AsRef<Path>>(
@@ -61,6 +74,7 @@ impl Scene {
 
 	pub fn build_bvh(&mut self) {
 		if !self.entities.is_empty() {
+			self.entity_count = self.entities.len() as u32;
 			let entities = std::mem::take(&mut self.entities);
 			self.bvh = Some(BvhNode::build(entities));
 		}
@@ -85,6 +99,7 @@ impl Scene {
 							0.5,
 							0.5,
 						);
+						scene.ray_count.fetch_add(1, Ordering::Relaxed);
 						scene.trace_ray(ray, scene.trace_depth)
 					} else {
 						let mut accumulated = Color::BLACK;
@@ -98,6 +113,7 @@ impl Scene {
 								dx,
 								dy,
 							);
+							scene.ray_count.fetch_add(1, Ordering::Relaxed);
 							accumulated += scene.trace_ray(ray, scene.trace_depth);
 						}
 						accumulated * (1.0 / scene.aa_samples as f32)
@@ -166,6 +182,7 @@ impl Scene {
 			let l = to_light / distance_to_light;
 
 			let shadow_ray = Ray::new(hit.point + hit.normal * 1e-4, l, true);
+			self.ray_count.fetch_add(1, Ordering::Relaxed);
 
 			// A hit closer than the light means this point is in shadow.
 			let in_light = self
@@ -196,6 +213,12 @@ impl Scene {
 		let ideal_reflection = self.get_reflected_direction(ray, &hit);
 		let reflection_point = self.get_offset_point(&hit);
 
+		if material.smoothness >= 1.0 {
+			let reflected_ray = Ray::new(reflection_point, ideal_reflection.normalize(), true);
+			self.ray_count.fetch_add(1, Ordering::Relaxed);
+			return self.trace_ray(reflected_ray, depth - 1);
+		}
+
 		let roughness = 1.0 - material.smoothness;
 		let mut accumulated = Color::BLACK;
 
@@ -216,6 +239,7 @@ impl Scene {
 			let direction = (ideal_reflection + random_dir * roughness).normalize();
 
 			let reflected_ray = Ray::new(reflection_point, direction, true);
+			self.ray_count.fetch_add(1, Ordering::Relaxed);
 			accumulated = accumulated + self.trace_ray(reflected_ray, depth - 1);
 		}
 
@@ -234,6 +258,7 @@ impl Scene {
 			self.get_reflected_direction(ray, &hit),
 			hit.front_face,
 		);
+		self.ray_count.fetch_add(1, Ordering::Relaxed);
 		let reflected_color = self.trace_ray(reflected_ray, depth - 1);
 
 		let eta = eta1 / eta2;
@@ -252,6 +277,7 @@ impl Scene {
 			refracted_direction,
 			!hit.front_face,
 		);
+		self.ray_count.fetch_add(1, Ordering::Relaxed);
 		let mut refracted_color = self.trace_ray(refracted_ray, depth - 1);
 
 		if !hit.front_face {

@@ -100,4 +100,8 @@ impl Entity for Mesh {
 	fn intersect(&self, ray: &Ray) -> Option<RayHit> {
 		self.bvh.as_ref()?.intersect(ray)
 	}
+
+	fn get_triangle_count(&self) -> i32 {
+		self.triangles.len() as i32
+	}
 }

@@ -11,15 +11,20 @@ use minifb::{Key, Window, WindowOptions};
 use std::fs;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
-use scenes::cybercity;
+use scenes::semester;
 
 fn main() {
-	let mut scene = cybercity::build();
+	let start = Instant::now();
+	let mut scene = semester::build();
+	println!("Loaded scene in {}ms", start.elapsed().as_millis());
+
 	let mut buffer: Vec<u32> = vec![0; scene.width * scene.height];
 
 	let start = Instant::now();
 	scene.render(&mut buffer);
 	println!("Rendered in {}ms", start.elapsed().as_millis());
+
+	scene.print_stats();
 
 	save_buffer_as_jpg(&buffer, scene.width, scene.height);
 
