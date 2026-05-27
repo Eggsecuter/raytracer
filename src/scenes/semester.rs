@@ -29,7 +29,7 @@ pub fn build() -> Scene {
 
 	// DEMO SETTINGS
 	scene.trace_depth = 4;
-	scene.smooth_samples = 32;
+	scene.smooth_samples = 8;
 	scene.aa_samples = 1;
 
 	let front_left_bottom = Vector3::new(-3.0, -2.0, 3.0);
